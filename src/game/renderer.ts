@@ -1,27 +1,57 @@
-import type { Cell, FloorDefinition } from './floor';
+import type { Cell, FloorDefinition, MonsterId } from './floor';
 import type { PlayerState } from './player';
-import { drawSprite, SPRITE_SIZE } from './sprites';
+import { HERO_FRAME_HEIGHT, TILE_SIZE, type AtlasKey, type SpriteLoader } from './sprite-atlas';
+
+export interface FloatingTextRenderState {
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+  alpha: number;
+}
+
+export interface BattleRenderState {
+  active: boolean;
+  targetX: number;
+  targetY: number;
+  monsterId: MonsterId;
+  playerDashX: number;
+  playerDashY: number;
+  monsterShakeX: number;
+  monsterShakeY: number;
+  monsterFlashAlpha: number;
+}
 
 export interface RenderState {
+  now: number;
   floorNumber: number;
   floorName: string;
   floor: FloorDefinition;
   player: PlayerState;
   message: string;
+  floatingTexts: FloatingTextRenderState[];
+  battle?: BattleRenderState;
 }
 
 const GRID_SIZE = 11;
 const HUD_HEIGHT = 48;
+const HP_TWEEN_MS = 200;
 
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly messageEl: HTMLElement;
+  private readonly loader: SpriteLoader;
   private scale = 2;
+  private displayedHp = 0;
+  private hpTweenFrom = 0;
+  private hpTweenTarget = 0;
+  private hpTweenStart = 0;
 
-  constructor(canvas: HTMLCanvasElement, messageEl: HTMLElement) {
+  constructor(canvas: HTMLCanvasElement, messageEl: HTMLElement, loader: SpriteLoader) {
     this.canvas = canvas;
     this.messageEl = messageEl;
+    this.loader = loader;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Failed to create game canvas context.');
@@ -38,15 +68,16 @@ export class Renderer {
   }
 
   render(state: RenderState): void {
-    const tileSize = SPRITE_SIZE * this.scale;
+    const tileSize = TILE_SIZE * this.scale;
     const hudHeight = HUD_HEIGHT * this.scale;
     const width = GRID_SIZE * tileSize;
     const height = hudHeight + GRID_SIZE * tileSize;
 
     this.ctx.clearRect(0, 0, width, height);
-    this.ctx.fillStyle = '#111713';
+    this.ctx.fillStyle = '#0f1318';
     this.ctx.fillRect(0, 0, width, height);
 
+    this.syncHudHp(state.now, state.player.hp);
     this.drawHud(state, width, hudHeight);
 
     for (let y = 0; y < GRID_SIZE; y += 1) {
@@ -54,13 +85,22 @@ export class Renderer {
         const cell = state.floor.grid[y][x];
         const drawX = x * tileSize;
         const drawY = hudHeight + y * tileSize;
-        this.drawCell(cell, drawX, drawY);
+        this.drawCell(state, cell, x, y, drawX, drawY);
       }
     }
 
-    const playerX = state.player.x * tileSize;
-    const playerY = hudHeight + state.player.y * tileSize;
-    drawSprite(this.ctx, 'player', playerX, playerY, this.scale);
+    const playerDrawX = state.player.visualX * this.scale + (state.battle?.playerDashX ?? 0) * this.scale;
+    const playerDrawY = hudHeight + state.player.visualY * this.scale + (state.battle?.playerDashY ?? 0) * this.scale;
+    this.loader.drawHero(
+      this.ctx,
+      playerDrawX,
+      playerDrawY - (HERO_FRAME_HEIGHT - TILE_SIZE) * this.scale,
+      this.scale,
+      state.player.dir,
+      state.player.walkFrame,
+    );
+
+    this.drawFloatingTexts(state, hudHeight);
 
     this.messageEl.textContent = state.message;
     this.messageEl.classList.toggle('visible', state.message.length > 0);
@@ -69,8 +109,8 @@ export class Renderer {
   private readonly resize = (): void => {
     const availableWidth = window.innerWidth - 24;
     const availableHeight = window.innerHeight - 200;
-    const logicalWidth = GRID_SIZE * SPRITE_SIZE;
-    const logicalHeight = HUD_HEIGHT + GRID_SIZE * SPRITE_SIZE;
+    const logicalWidth = GRID_SIZE * TILE_SIZE;
+    const logicalHeight = HUD_HEIGHT + GRID_SIZE * TILE_SIZE;
     const nextScale = Math.max(2, Math.floor(Math.min(availableWidth / logicalWidth, availableHeight / logicalHeight, 3)));
 
     this.scale = nextScale;
@@ -80,16 +120,45 @@ export class Renderer {
     this.canvas.style.height = `${this.canvas.height}px`;
   };
 
+  private syncHudHp(now: number, hp: number): void {
+    if (this.hpTweenTarget === 0 && this.displayedHp === 0) {
+      this.displayedHp = hp;
+      this.hpTweenFrom = hp;
+      this.hpTweenTarget = hp;
+      this.hpTweenStart = now;
+      return;
+    }
+
+    if (hp !== this.hpTweenTarget) {
+      this.displayedHp = this.getTweenedHp(now);
+      this.hpTweenFrom = this.displayedHp;
+      this.hpTweenTarget = hp;
+      this.hpTweenStart = now;
+      return;
+    }
+
+    this.displayedHp = this.getTweenedHp(now);
+  }
+
+  private getTweenedHp(now: number): number {
+    if (this.hpTweenTarget === this.hpTweenFrom) {
+      return this.hpTweenTarget;
+    }
+
+    const progress = Math.min(1, (now - this.hpTweenStart) / HP_TWEEN_MS);
+    return this.hpTweenFrom + (this.hpTweenTarget - this.hpTweenFrom) * progress;
+  }
+
   private drawHud(state: RenderState, width: number, hudHeight: number): void {
-    this.ctx.fillStyle = '#1f2d20';
+    this.ctx.fillStyle = '#182028';
     this.ctx.fillRect(0, 0, width, hudHeight);
-    this.ctx.fillStyle = '#eef7e9';
-    this.ctx.font = `${14 * this.scale}px sans-serif`;
+    this.ctx.fillStyle = '#d5e4c8';
+    this.ctx.font = `${14 * this.scale}px 'Trebuchet MS', 'Noto Sans SC', sans-serif`;
     this.ctx.textBaseline = 'top';
     this.ctx.fillText(`F${state.floorNumber} ${state.floorName}`, 8 * this.scale, 6 * this.scale);
-    this.ctx.font = `${10 * this.scale}px sans-serif`;
+    this.ctx.font = `${10 * this.scale}px 'Trebuchet MS', 'Noto Sans SC', sans-serif`;
     this.ctx.fillText(
-      `HP ${state.player.hp}  攻 ${state.player.atk}  防 ${state.player.def}  金 ${state.player.gold}  经 ${state.player.exp}`,
+      `HP ${Math.round(this.displayedHp)}  攻 ${state.player.atk}  防 ${state.player.def}  金 ${state.player.gold}  经 ${state.player.exp}`,
       8 * this.scale,
       24 * this.scale,
     );
@@ -100,8 +169,8 @@ export class Renderer {
     );
   }
 
-  private drawCell(cell: Cell, x: number, y: number): void {
-    const tileSprite = cell.terrain === 'wall'
+  private drawCell(state: RenderState, cell: Cell, gridX: number, gridY: number, drawX: number, drawY: number): void {
+    const tileSprite: AtlasKey = cell.terrain === 'wall'
       ? 'wall'
       : cell.terrain === 'stair-up'
         ? 'stairUp'
@@ -109,36 +178,69 @@ export class Renderer {
           ? 'stairDown'
           : 'floor';
 
-    drawSprite(this.ctx, tileSprite, x, y, this.scale);
+    this.loader.drawAt(this.ctx, tileSprite, drawX, drawY, this.scale);
 
     if (cell.door) {
-      const name = cell.door === 'yellow' ? 'doorYellow' : cell.door === 'blue' ? 'doorBlue' : 'doorRed';
-      drawSprite(this.ctx, name, x, y, this.scale);
+      const name: AtlasKey = cell.door === 'yellow' ? 'doorYellow' : cell.door === 'blue' ? 'doorBlue' : 'doorRed';
+      this.loader.drawAt(this.ctx, name, drawX, drawY, this.scale);
     }
 
     if (cell.item) {
-      const name =
-        cell.item === 'yellowKey'
-          ? 'keyYellow'
-          : cell.item === 'blueKey'
-            ? 'keyBlue'
-            : cell.item === 'redKey'
-              ? 'keyRed'
-              : cell.item === 'redPotion'
-                ? 'redPotion'
-                : cell.item === 'bluePotion'
-                  ? 'bluePotion'
-                  : 'gem';
-      drawSprite(this.ctx, name, x, y, this.scale);
+      const name: AtlasKey = cell.item === 'yellowKey'
+        ? 'keyYellow'
+        : cell.item === 'blueKey'
+          ? 'keyBlue'
+          : cell.item === 'redKey'
+            ? 'keyRed'
+            : cell.item === 'redPotion'
+              ? 'redPotion'
+              : cell.item === 'bluePotion'
+                ? 'bluePotion'
+                : 'gem';
+      this.loader.drawAt(this.ctx, name, drawX, drawY, this.scale);
     }
 
-    if (cell.monster) {
-      if (cell.monster === 'wither') {
-        drawSprite(this.ctx, 'wither', x - 16 * this.scale, y, this.scale);
-        return;
-      }
-
-      drawSprite(this.ctx, cell.monster, x, y, this.scale);
+    if (!cell.monster) {
+      return;
     }
+
+    const battle = state.battle;
+    const isBattleTarget = battle?.active && battle.targetX === gridX && battle.targetY === gridY;
+    const monsterX = drawX + (isBattleTarget ? battle.monsterShakeX * this.scale : 0);
+    const monsterY = drawY + (isBattleTarget ? battle.monsterShakeY * this.scale : 0);
+
+    this.loader.drawAt(this.ctx, cell.monster, monsterX, monsterY, this.scale);
+
+    if (!isBattleTarget || !battle.monsterFlashAlpha) {
+      return;
+    }
+
+    this.ctx.save();
+    this.ctx.globalAlpha = battle.monsterFlashAlpha;
+    this.ctx.fillStyle = '#ff3d2e';
+    this.ctx.fillRect(monsterX, monsterY, TILE_SIZE * this.scale, TILE_SIZE * this.scale);
+    this.ctx.restore();
+  }
+
+  private drawFloatingTexts(state: RenderState, hudHeight: number): void {
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.font = `${12 * this.scale}px 'Trebuchet MS', 'Noto Sans SC', sans-serif`;
+
+    for (const label of state.floatingTexts) {
+      this.ctx.save();
+      this.ctx.globalAlpha = label.alpha;
+      this.ctx.fillStyle = label.color;
+      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+      this.ctx.lineWidth = 2 * this.scale;
+      const x = label.x * this.scale;
+      const y = hudHeight + label.y * this.scale;
+      this.ctx.strokeText(label.text, x, y);
+      this.ctx.fillText(label.text, x, y);
+      this.ctx.restore();
+    }
+
+    this.ctx.textAlign = 'start';
+    this.ctx.textBaseline = 'alphabetic';
   }
 }

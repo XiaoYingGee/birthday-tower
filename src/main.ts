@@ -1,6 +1,7 @@
 import './styles.css';
 
 import { GameEngine } from './game/engine';
+import { SpriteLoader } from './game/sprite-atlas';
 
 function blockMobileGestures(): void {
   const blocker = (event: Event) => event.preventDefault();
@@ -22,16 +23,35 @@ if (!canvas || !controls || !shell || !messageEl) {
   throw new Error('Game root elements are missing.');
 }
 
+const rootCanvas = canvas;
+const rootControls = controls;
+const rootShell = shell;
+const rootMessageEl = messageEl;
+
 const playerName = import.meta.env.VITE_PLAYER_NAME || '小朋友';
 const playerAge = import.meta.env.VITE_PLAYER_AGE || '6';
 
-const engine = new GameEngine({
-  canvas,
-  controls,
-  shell,
-  messageEl,
-  playerName,
-  playerAge,
-});
+async function bootstrap(): Promise<void> {
+  rootMessageEl.textContent = '素材加载中...';
+  rootMessageEl.classList.add('visible');
 
-window.addEventListener('beforeunload', () => engine.destroy());
+  const loader = new SpriteLoader();
+  await loader.load();
+
+  rootMessageEl.classList.remove('visible');
+  rootMessageEl.textContent = '';
+
+  const engine = new GameEngine({
+    canvas: rootCanvas,
+    controls: rootControls,
+    shell: rootShell,
+    messageEl: rootMessageEl,
+    playerName,
+    playerAge,
+    loader,
+  });
+
+  window.addEventListener('beforeunload', () => engine.destroy());
+}
+
+void bootstrap();

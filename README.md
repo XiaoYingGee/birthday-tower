@@ -43,6 +43,14 @@ VITE_PLAYER_AGE=6
 - 禁用长按菜单、文本选中、手势缩放和双击手势
 - 底部提供大尺寸虚拟按键，避免误触
 
+## 素材致谢
+
+本项目使用 `ckcz123/mota-js` 提供的像素素材，涵盖 `terrains`、`items`、`animates`、`enemys`、`hero` 等图集。
+
+- 授权协议：BSD-3-Clause
+- 著作权归属：`ckcz123`
+- 第三方许可证全文见 `LICENSE-THIRD-PARTY.md`
+
 ## 部署到 Cloudflare Pages
 
 ```bash

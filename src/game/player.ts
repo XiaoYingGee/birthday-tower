@@ -11,19 +11,26 @@ export interface Inventory {
 export interface PlayerState {
   x: number;
   y: number;
+  visualX: number;
+  visualY: number;
   hp: number;
   atk: number;
   def: number;
   gold: number;
   exp: number;
   inventory: Inventory;
-  facing: 'up' | 'down' | 'left' | 'right';
+  dir: 'up' | 'down' | 'left' | 'right';
+  isMoving: boolean;
+  walkFrame: 0 | 1 | 2;
+  walkFrameTimer: number;
 }
 
 export function createPlayer(x: number, y: number): PlayerState {
   return {
     x,
     y,
+    visualX: x * 32,
+    visualY: y * 32,
     hp: 100,
     atk: 12,
     def: 6,
@@ -36,7 +43,10 @@ export function createPlayer(x: number, y: number): PlayerState {
       blue: 0,
       red: 0,
     },
-    facing: 'down',
+    dir: 'down',
+    isMoving: false,
+    walkFrame: 0,
+    walkFrameTimer: 0,
   };
 }
 

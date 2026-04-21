@@ -542,9 +542,14 @@ export class GameEngine {
       }
 
       this.floorIndex -= 1;
-      const upStair = findStair(this.currentFloor, 'stair-up');
-      const adj = findAdjacentFloor(this.currentFloor, upStair.x, upStair.y);
-      this.placePlayer(adj.x, adj.y);
+      const floor = this.currentFloor;
+      if (floor.comeDown) {
+        this.placePlayer(floor.comeDown.x, floor.comeDown.y);
+      } else {
+        const upStair = findStair(floor, 'stair-up');
+        const adj = findAdjacentFloor(floor, upStair.x, upStair.y);
+        this.placePlayer(adj.x, adj.y);
+      }
       this.pendingDirection = undefined;
       this.showMessage(`${this.currentFloor.name}`);
     }

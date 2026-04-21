@@ -59,7 +59,7 @@ canvas {
 }
 
 .side-panel {
-  width: 140px;
+  width: 100px;
   min-height: 200px;
   padding: 8px;
   background: rgba(255,255,255,0.06);
@@ -372,7 +372,7 @@ canvas {
 
 @media (max-width: 900px) and (min-width: 701px) {
   .side-panel {
-    width: 110px;
+    width: 90px;
     font-size: 11px;
   }
 }

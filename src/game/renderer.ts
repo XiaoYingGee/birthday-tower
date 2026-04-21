@@ -168,9 +168,19 @@ export class Renderer {
   }
 
   private readonly resize = (): void => {
-    const availableHeight = window.innerHeight - 120;
     const logicalSize = GRID_SIZE * TILE_SIZE;
-    const nextScale = Math.max(2, Math.floor(Math.min((window.innerWidth * 0.45) / logicalSize, availableHeight / logicalSize, 3)));
+
+    const bannerH = this.bannerEl.offsetHeight || 32;
+    const joystickReserve = 170;
+    const verticalPad = 16;
+    const availableHeight = window.innerHeight - bannerH - joystickReserve - verticalPad;
+
+    const sidePanelW = this.leftPanel.offsetWidth || 140;
+    const gap = 8;
+    const availableWidth = window.innerWidth - (sidePanelW + gap) * 2;
+
+    const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize, 3);
+    const nextScale = Math.max(1, Math.floor(maxScale));
 
     this.scale = nextScale;
     this.canvas.width = logicalSize * this.scale;

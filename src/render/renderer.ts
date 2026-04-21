@@ -41,7 +41,7 @@ export class Renderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly messageEl: HTMLElement;
   private readonly bannerEl: HTMLElement;
-  private readonly rightPanel: HTMLElement;
+  private readonly panel: HTMLElement;
   private readonly loader: SpriteLoader;
   private scale = 2;
 
@@ -49,13 +49,13 @@ export class Renderer {
     canvas: HTMLCanvasElement,
     messageEl: HTMLElement,
     bannerEl: HTMLElement,
-    rightPanel: HTMLElement,
+    panel: HTMLElement,
     loader: SpriteLoader,
   ) {
     this.canvas = canvas;
     this.messageEl = messageEl;
     this.bannerEl = bannerEl;
-    this.rightPanel = rightPanel;
+    this.panel = panel;
     this.loader = loader;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -128,7 +128,7 @@ export class Renderer {
       `<div class="stat">${spriteIcon('/sprites/items.png', 1)}<span class="label">蓝钥匙</span><span class="val">${p.blueKeys}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 2)}<span class="label">红钥匙</span><span class="val">${p.redKeys}</span></div>`;
 
-    this.rightPanel.innerHTML = html;
+    this.panel.innerHTML = html;
 
     this.messageEl.textContent = state.message;
     this.messageEl.classList.toggle('visible', state.message.length > 0);
@@ -137,10 +137,9 @@ export class Renderer {
   private readonly resize = (): void => {
     const logicalSize = GRID_SIZE * TILE_SIZE;
 
-    const bannerH = 32;
     const isTouchDevice = matchMedia('(pointer: coarse)').matches;
-    const joystickReserve = isTouchDevice ? 170 : 0;
-    const verticalPad = 16 + bannerH;
+    const joystickReserve = isTouchDevice ? 210 : 0;
+    const verticalPad = 16;
     const availableHeight = window.innerHeight - joystickReserve - verticalPad;
     const availableWidth = window.innerWidth;
 
@@ -159,12 +158,29 @@ export class Renderer {
 
     requestAnimationFrame(() => {
       const rect = this.canvas.getBoundingClientRect();
+      const tileOnScreen = TILE_SIZE * this.scale;
       this.bannerEl.style.left = `${rect.left}px`;
-      this.bannerEl.style.top = `${rect.top - bannerH}px`;
-      const rightWrap = this.rightPanel.parentElement;
-      if (rightWrap) {
-        rightWrap.style.left = `${rect.right + 8}px`;
-        rightWrap.style.top = `${rect.top}px`;
+      this.bannerEl.style.top = `${rect.top}px`;
+      this.bannerEl.style.width = `${tileOnScreen}px`;
+      this.bannerEl.style.height = `${tileOnScreen}px`;
+      const wrap = this.panel.parentElement;
+      if (wrap) {
+        const isPortrait = window.innerHeight > window.innerWidth;
+        if (isPortrait) {
+          wrap.style.position = 'absolute';
+          wrap.style.left = `${rect.left}px`;
+          wrap.style.top = `${rect.top - 8}px`;
+          wrap.style.bottom = '';
+          wrap.style.transform = 'translateY(-100%)';
+          this.panel.classList.add('panel-portrait');
+        } else {
+          wrap.style.position = 'absolute';
+          wrap.style.left = `${rect.left - 8}px`;
+          wrap.style.top = `${rect.top}px`;
+          wrap.style.bottom = '';
+          wrap.style.transform = 'translateX(-100%)';
+          this.panel.classList.remove('panel-portrait');
+        }
       }
     });
   };

@@ -36,7 +36,7 @@ export interface GameConfig {
   shell: HTMLElement;
   messageEl: HTMLElement;
   bannerEl: HTMLElement;
-  rightPanel: HTMLElement;
+  leftPanel: HTMLElement;
   shopOverlay: HTMLElement;
   princessOverlay: HTMLElement;
   keyshopOverlay: HTMLElement;
@@ -91,7 +91,7 @@ export class GameEngine implements GameContext {
   }
 
   constructor(config: GameConfig) {
-    this.renderer = new Renderer(config.canvas, config.messageEl, config.bannerEl, config.rightPanel, config.loader);
+    this.renderer = new Renderer(config.canvas, config.messageEl, config.bannerEl, config.leftPanel, config.loader);
     this.input = new InputManager((action) => this.handleAction(action));
     this.joystick = new Joystick(config.joystickBase, config.joystickKnob, (action) => this.handleAction(action));
     this.victory = new VictoryEffect(config.shell, config.playerName, config.playerAge, () => this.newGame());

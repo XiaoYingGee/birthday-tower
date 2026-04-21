@@ -15,22 +15,6 @@ function blockMobileGestures(): void {
 
 blockMobileGestures();
 
-function setupLandscapeHint(): void {
-  if (!matchMedia('(pointer: coarse)').matches) return;
-  const hint = document.createElement('div');
-  hint.id = 'landscape-hint';
-  hint.innerHTML = '<div class="landscape-icon">📱↻</div><div>请旋转设备至横屏模式</div>';
-  document.body.appendChild(hint);
-  const check = () => {
-    hint.classList.toggle('visible', window.innerHeight > window.innerWidth);
-  };
-  window.addEventListener('resize', check);
-  window.addEventListener('orientationchange', check);
-  check();
-}
-
-setupLandscapeHint();
-
 function requireEl<T extends HTMLElement>(id: string): T {
   const el = document.querySelector<T>(`#${id}`);
   if (!el) throw new Error(`Missing element #${id}`);
@@ -43,7 +27,7 @@ const dpad = requireEl<HTMLElement>('dpad');
 const shell = requireEl<HTMLElement>('game-shell');
 const messageEl = requireEl<HTMLElement>('message');
 const bannerEl = requireEl<HTMLElement>('banner');
-const rightPanel = requireEl<HTMLElement>('right-panel');
+const leftPanel = requireEl<HTMLElement>('left-panel');
 const shopOverlay = requireEl<HTMLElement>('shop-overlay');
 const princessOverlay = requireEl<HTMLElement>('princess-overlay');
 const keyshopOverlay = requireEl<HTMLElement>('keyshop-overlay');
@@ -54,21 +38,6 @@ const restartConfirm = requireEl<HTMLElement>('restart-confirm');
 const treasureConfirm = requireEl<HTMLElement>('treasure-confirm');
 const fairyConfirm = requireEl<HTMLElement>('fairy-confirm');
 const victoryChest = requireEl<HTMLElement>('victory-chest');
-
-const dpadSideBtn = document.getElementById('dpad-side-btn');
-if (dpadSideBtn) {
-  let dpadOnRight = true;
-  dpadSideBtn.addEventListener('click', () => {
-    dpadOnRight = !dpadOnRight;
-    if (dpadOnRight) {
-      dpad.style.right = '20px';
-      dpad.style.left = 'auto';
-    } else {
-      dpad.style.right = 'auto';
-      dpad.style.left = '20px';
-    }
-  });
-}
 
 const playerName = import.meta.env.VITE_PLAYER_NAME || '小朋友';
 const playerAge = import.meta.env.VITE_PLAYER_AGE || '6';
@@ -91,7 +60,7 @@ async function bootstrap(): Promise<void> {
     shell,
     messageEl,
     bannerEl,
-    rightPanel,
+    leftPanel,
     shopOverlay,
     princessOverlay,
     keyshopOverlay,

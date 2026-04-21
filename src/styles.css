@@ -42,19 +42,26 @@ canvas {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  padding: 16px;
 }
 
 #banner {
   position: absolute;
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffd166;
   white-space: nowrap;
+  z-index: 6;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#restart-btn, #dpad-side-btn {
+#restart-btn {
   position: fixed;
   top: 10px;
+  right: 10px;
   width: 32px;
   height: 32px;
   border: 1px solid rgba(255,255,255,0.2);
@@ -71,10 +78,7 @@ canvas {
   padding: 0;
 }
 
-#restart-btn { right: 10px; }
-#dpad-side-btn { right: 48px; }
-
-#restart-btn:hover, #dpad-side-btn:hover {
+#restart-btn:hover {
   background: rgba(255,255,255,0.15);
   color: #fff;
 }
@@ -85,10 +89,6 @@ canvas {
   justify-content: center;
 }
 
-#right-wrap {
-  position: absolute;
-  z-index: 5;
-}
 
 .side-panel {
   width: 160px;
@@ -239,20 +239,20 @@ canvas {
   bottom: 20px;
   right: 20px;
   left: auto;
-  width: 150px;
-  height: 150px;
+  width: 190px;
+  height: 190px;
   touch-action: none;
 }
 
 .dpad-btn {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border: 2px solid rgba(255,255,255,0.25);
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.6);
-  font-size: 20px;
+  font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,10 +267,10 @@ canvas {
   color: #ffd166;
 }
 
-.dpad-up    { left: 50px; top: 0; }
-.dpad-down  { left: 50px; bottom: 0; }
-.dpad-left  { left: 0; top: 50px; }
-.dpad-right { right: 0; top: 50px; }
+.dpad-up    { left: 65px; top: 0; }
+.dpad-down  { left: 65px; bottom: 0; }
+.dpad-left  { left: 0; top: 65px; }
+.dpad-right { right: 0; top: 65px; }
 
 /* Shop overlay */
 #shop-overlay {
@@ -598,14 +598,28 @@ canvas {
   }
 }
 
-@media (max-width: 700px) {
-  #right-wrap {
-    display: none;
-  }
+#left-wrap {
+  position: absolute;
+  z-index: 5;
+}
 
-  #game-area {
-    gap: 0;
-  }
+.panel-portrait {
+  width: auto !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
+  background: rgba(0,0,0,0.85);
+}
+
+.panel-portrait .panel-title,
+.panel-portrait .panel-divider,
+.panel-portrait .section-title {
+  width: 100%;
+}
+
+.panel-portrait .stat {
+  width: 45%;
+  min-width: 100px;
 }
 
 @media (max-width: 900px) and (min-width: 701px) {
@@ -765,27 +779,4 @@ canvas {
   font-weight: 700;
   font-size: 10px;
   margin-bottom: 2px;
-}
-
-#landscape-hint {
-  position: fixed;
-  inset: 0;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.9);
-  color: #ffd166;
-  font-size: 18px;
-  font-weight: 700;
-  z-index: 100;
-}
-
-#landscape-hint.visible {
-  display: flex;
-}
-
-.landscape-icon {
-  font-size: 60px;
-  margin-bottom: 16px;
 }

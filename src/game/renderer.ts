@@ -171,15 +171,17 @@ export class Renderer {
     const logicalSize = GRID_SIZE * TILE_SIZE;
 
     const bannerH = this.bannerEl.offsetHeight || 32;
-    const joystickReserve = 170;
+    const isTouchDevice = matchMedia('(pointer: coarse)').matches;
+    const joystickReserve = isTouchDevice ? 170 : 0;
     const verticalPad = 16;
     const availableHeight = window.innerHeight - bannerH - joystickReserve - verticalPad;
 
-    const sidePanelW = this.leftPanel.offsetWidth || 140;
-    const gap = 8;
-    const availableWidth = window.innerWidth - (sidePanelW + gap) * 2;
+    const leftW = this.leftPanel.offsetWidth > 0 ? this.leftPanel.offsetWidth : 0;
+    const rightW = this.rightPanel.offsetWidth > 0 ? this.rightPanel.offsetWidth : 0;
+    const gap = (leftW > 0 || rightW > 0) ? 8 : 0;
+    const availableWidth = window.innerWidth - leftW - rightW - gap * 2;
 
-    const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize, 3);
+    const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize);
     const nextScale = Math.max(1, Math.floor(maxScale));
 
     this.scale = nextScale;

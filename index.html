@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#20211f" />
+    <title>生日魔塔</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="game-shell">
+        <canvas id="game-canvas" aria-label="生日魔塔游戏画布"></canvas>
+        <div id="touch-controls" aria-hidden="false">
+          <div class="control-pad control-pad-left">
+            <button class="control-btn spacer" tabindex="-1" aria-hidden="true"></button>
+            <button class="control-btn" data-action="up">↑</button>
+            <button class="control-btn spacer" tabindex="-1" aria-hidden="true"></button>
+            <button class="control-btn" data-action="left">←</button>
+            <button class="control-btn" data-action="down">↓</button>
+            <button class="control-btn" data-action="right">→</button>
+          </div>
+          <div class="control-pad control-pad-right">
+            <button class="action-btn" data-action="attack">攻击</button>
+            <button class="action-btn" data-action="item">物品</button>
+          </div>
+        </div>
+        <div id="message" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+  </html>

@@ -117,16 +117,21 @@ export class Renderer {
     let html =
       `<div class="panel-title"><strong>${state.playerName}</strong> <strong>Lv.${p.level}</strong>（${p.exp}/100）</div>` +
       '<hr class="panel-divider">' +
+      '<div class="stat-group">' +
       `<div class="stat">${spriteIcon('/sprites/icons.png', 3)}<span class="label">HP</span><span class="val">${p.hp}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 50)}<span class="label">攻击</span><span class="val">${p.atk}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 55)}<span class="label">防御</span><span class="val">${p.def}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 11)}<span class="label">金币</span><span class="val">${p.gold}</span></div>` +
+      '</div>' +
       '<hr class="panel-divider">' +
       '<div class="section-title">道具</div>' +
       '<hr class="panel-divider">' +
+      '<div class="stat-group">' +
       `<div class="stat">${spriteIcon('/sprites/items.png', 0)}<span class="label">黄钥匙</span><span class="val">${p.yellowKeys}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 1)}<span class="label">蓝钥匙</span><span class="val">${p.blueKeys}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 2)}<span class="label">红钥匙</span><span class="val">${p.redKeys}</span></div>`;
+      `<div class="stat">${spriteIcon('/sprites/items.png', 2)}<span class="label">红钥匙</span><span class="val">${p.redKeys}</span></div>` +
+      '<div class="stat stat-spacer"></div>' +
+      '</div>';
 
     this.panel.innerHTML = html;
 
@@ -138,9 +143,10 @@ export class Renderer {
     const logicalSize = GRID_SIZE * TILE_SIZE;
 
     const shellPad = 32;
+    const panelReserve = 50;
     const isTouchDevice = matchMedia('(pointer: coarse)').matches;
     const joystickReserve = isTouchDevice ? 210 : 0;
-    const availableHeight = window.innerHeight - joystickReserve - shellPad;
+    const availableHeight = window.innerHeight - joystickReserve - shellPad - panelReserve;
     const availableWidth = window.innerWidth - shellPad;
 
     const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize);
@@ -166,19 +172,18 @@ export class Renderer {
       const wrap = this.panel.parentElement;
       if (wrap) {
         const isPortrait = window.innerHeight > window.innerWidth;
+        wrap.style.position = 'absolute';
         if (isPortrait) {
-          wrap.style.position = 'absolute';
           wrap.style.left = `${rect.left}px`;
-          wrap.style.top = `${rect.top - 8}px`;
-          wrap.style.bottom = '';
+          wrap.style.top = `${rect.top - 4}px`;
           wrap.style.transform = 'translateY(-100%)';
+          wrap.style.width = '320px';
           this.panel.classList.add('panel-portrait');
         } else {
-          wrap.style.position = 'absolute';
           wrap.style.left = `${rect.left - 8}px`;
           wrap.style.top = `${rect.top}px`;
-          wrap.style.bottom = '';
           wrap.style.transform = 'translateX(-100%)';
+          wrap.style.width = '';
           this.panel.classList.remove('panel-portrait');
         }
       }

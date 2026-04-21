@@ -92,15 +92,22 @@ canvas {
 
 .side-panel {
   width: 160px;
-  padding: 8px 10px;
+  padding: 6px 10px;
   background: rgba(255,255,255,0.06);
   border-radius: 8px;
   font-size: 13px;
   line-height: 1.6;
   color: #ccc;
-  overflow-y: auto;
-  max-height: 80vh;
   text-align: left;
+  box-sizing: border-box;
+}
+
+.side-panel .stat-group {
+  display: block;
+}
+
+.stat-spacer {
+  display: none;
 }
 
 .side-panel .stat {
@@ -604,30 +611,50 @@ canvas {
 }
 
 .panel-portrait {
-  width: auto !important;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 12px;
+  width: 320px !important;
   background: rgba(0,0,0,0.85);
+  padding: 4px 8px !important;
 }
 
-.panel-portrait .panel-title,
-.panel-portrait .panel-divider,
+.panel-portrait .panel-divider {
+  display: none;
+}
+
+.panel-portrait .panel-title {
+  font-size: 13px;
+}
+
 .panel-portrait .section-title {
-  width: 100%;
+  font-size: 12px;
+  margin: 2px 0 0;
+}
+
+.panel-portrait .stat-group {
+  display: flex;
+}
+
+.panel-portrait .stat-spacer {
+  display: block;
 }
 
 .panel-portrait .stat {
-  width: 45%;
-  min-width: 100px;
+  flex: 1;
+  height: 26px;
 }
 
-@media (max-width: 900px) and (min-width: 701px) {
-  .side-panel {
-    width: 120px;
-    font-size: 11px;
-  }
+.panel-portrait .stat .label {
+  display: none;
 }
+
+.panel-portrait .stat .val {
+  font-size: 13px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+  padding-left: 4px;
+  padding-right: 6px;
+}
+
 
 /* Debug Panel */
 #debug-panel {

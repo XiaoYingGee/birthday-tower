@@ -1,13 +1,13 @@
 import { createFloors } from './floors';
-import type { Cell, FloorDefinition, MonsterId } from './floor';
+import type { Cell, FloorDefinition, ItemType, MonsterId } from './floor';
 import { InputManager, type InputAction } from './input';
 import { estimateBattle, MONSTERS, type BattleEstimate } from './monster';
-import { applyItem, consumeDoorKey, createPlayer, useInventoryItem, type PlayerState } from './player';
-import { Renderer, type BattleRenderState, type FloatingTextRenderState } from './renderer';
+import { applyItem, checkLevelUp, consumeDoorKey, createPlayer, type PlayerState } from './player';
+import { Renderer, type BattleRenderState, type FloatingTextRenderState, type MonsterInfo, type ItemInfo } from './renderer';
 import { TILE_SIZE, type SpriteLoader } from './sprite-atlas';
 import { VictoryEffect } from './victory';
 
-type Direction = Extract<InputAction, 'up' | 'down' | 'left' | 'right'>;
+type Direction = InputAction;
 
 interface MoveAnimation {
   fromX: number;
@@ -37,7 +37,6 @@ interface BattleAnimation {
   gridY: number;
   monsterId: MonsterId;
   estimate: BattleEstimate;
-  moveIntoCell: boolean;
   playerDashX: number;
   playerDashY: number;
   monsterShakeX: number;
@@ -50,6 +49,10 @@ export interface GameConfig {
   controls: HTMLElement;
   shell: HTMLElement;
   messageEl: HTMLElement;
+  bannerEl: HTMLElement;
+  leftPanel: HTMLElement;
+  rightPanel: HTMLElement;
+  shopOverlay: HTMLElement;
   playerName: string;
   playerAge: string;
   loader: SpriteLoader;
@@ -60,16 +63,40 @@ const BATTLE_DURATION = 300;
 const FLOAT_DURATION = 500;
 const WALK_PATTERN: Array<0 | 1 | 2> = [0, 1, 0, 2];
 
+const ITEM_NAMES: Record<ItemType, string> = {
+  redPotion: '红药水',
+  bluePotion: '蓝药水',
+  redGem: '红宝石',
+  blueGem: '蓝宝石',
+  treasure: '★神秘宝物',
+  yellowKey: '黄钥匙',
+  blueKey: '蓝钥匙',
+  redKey: '红钥匙',
+};
+
+const ITEM_DESCS: Record<ItemType, string> = {
+  redPotion: 'HP+50',
+  bluePotion: 'HP+150',
+  redGem: '攻+10',
+  blueGem: '防+10',
+  treasure: 'HP/攻/防 ×2',
+  yellowKey: '开黄门',
+  blueKey: '开蓝门',
+  redKey: '开红门',
+};
+
 export class GameEngine {
   private readonly renderer: Renderer;
   private readonly input: InputManager;
   private readonly victory: VictoryEffect;
+  private readonly shopOverlay: HTMLElement;
   private floors: FloorDefinition[] = [];
   private floorIndex = 0;
   private player!: PlayerState;
-  private message = '欢迎来到生日魔塔，先清理僵尸吧';
+  private message = '欢迎来到生日魔塔！';
   private messageTimer?: number;
   private victoryShown = false;
+  private shopOpen = false;
   private pendingDirection?: Direction;
   private moveAnimation?: MoveAnimation;
   private battleAnimation?: BattleAnimation;
@@ -78,10 +105,12 @@ export class GameEngine {
   private lastFrame = 0;
 
   constructor(config: GameConfig) {
-    this.renderer = new Renderer(config.canvas, config.messageEl, config.loader);
+    this.renderer = new Renderer(config.canvas, config.messageEl, config.bannerEl, config.leftPanel, config.rightPanel, config.loader);
     this.input = new InputManager(config.controls, (action) => this.handleAction(action));
     this.victory = new VictoryEffect(config.shell, config.playerName, config.playerAge, () => this.reset());
+    this.shopOverlay = config.shopOverlay;
 
+    this.setupShop();
     this.reset();
     this.lastFrame = performance.now();
     this.rafId = requestAnimationFrame(this.loop);
@@ -100,6 +129,60 @@ export class GameEngine {
     }
   }
 
+  private setupShop(): void {
+    this.shopOverlay.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest<HTMLButtonElement>('[data-shop]');
+      if (!btn) {
+        if (target.closest('.shop-close')) {
+          this.closeShop();
+        }
+        return;
+      }
+
+      const action = btn.dataset.shop!;
+      let cost = 0;
+      if (action === 'hp') { cost = 30; }
+      else if (action === 'atk') { cost = 50; }
+      else if (action === 'def') { cost = 50; }
+
+      if (this.player.gold < cost) return;
+
+      this.player.gold -= cost;
+      if (action === 'hp') { this.player.hp += 100; this.showMessage('HP+100'); }
+      else if (action === 'atk') { this.player.atk += 5; this.showMessage('攻+5'); }
+      else if (action === 'def') { this.player.def += 5; this.showMessage('防+5'); }
+
+      this.updateShopButtons();
+    });
+  }
+
+  private openShop(): void {
+    this.shopOpen = true;
+    this.updateShopButtons();
+    this.shopOverlay.classList.add('visible');
+  }
+
+  private closeShop(): void {
+    this.shopOpen = false;
+    this.shopOverlay.classList.remove('visible');
+  }
+
+  private updateShopButtons(): void {
+    const gold = this.player.gold;
+    const btns = this.shopOverlay.querySelectorAll<HTMLButtonElement>('[data-shop]');
+    for (const btn of btns) {
+      const action = btn.dataset.shop!;
+      let cost = 0;
+      if (action === 'hp') cost = 30;
+      else if (action === 'atk') cost = 50;
+      else if (action === 'def') cost = 50;
+      btn.disabled = gold < cost;
+    }
+    const goldEl = this.shopOverlay.querySelector('.shop-gold');
+    if (goldEl) goldEl.textContent = `金币: ${gold}`;
+  }
+
   private reset(): void {
     if (this.messageTimer) {
       window.clearTimeout(this.messageTimer);
@@ -110,8 +193,10 @@ export class GameEngine {
     this.floorIndex = 0;
     const start = this.floors[0].start;
     this.player = createPlayer(start.x, start.y);
-    this.message = '欢迎来到生日魔塔，先清理僵尸吧';
+    this.message = '欢迎来到生日魔塔！';
     this.victoryShown = false;
+    this.shopOpen = false;
+    this.shopOverlay.classList.remove('visible');
     this.pendingDirection = undefined;
     this.moveAnimation = undefined;
     this.battleAnimation = undefined;
@@ -150,6 +235,8 @@ export class GameEngine {
       message: this.message,
       floatingTexts: this.getFloatingTextRenderState(now),
       battle: this.getBattleRenderState(),
+      monsters: this.getFloorMonsters(),
+      items: this.getFloorItems(),
     });
   }
 
@@ -157,35 +244,58 @@ export class GameEngine {
     return this.floors[this.floorIndex];
   }
 
+  private getFloorMonsters(): MonsterInfo[] {
+    const result: MonsterInfo[] = [];
+    const seen = new Set<MonsterId>();
+    for (const row of this.currentFloor.grid) {
+      for (const cell of row) {
+        if (cell.monster && !seen.has(cell.monster)) {
+          seen.add(cell.monster);
+          const m = MONSTERS[cell.monster];
+          const est = estimateBattle(this.player.hp, this.player.atk, this.player.def, cell.monster);
+          result.push({
+            name: m.name,
+            hp: m.hp,
+            atk: m.atk,
+            def: m.def,
+            damage: est.damageTaken,
+            fatal: est.fatal,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  private getFloorItems(): ItemInfo[] {
+    const result: ItemInfo[] = [];
+    const seen = new Set<ItemType>();
+    for (const row of this.currentFloor.grid) {
+      for (const cell of row) {
+        if (cell.item && !seen.has(cell.item)) {
+          seen.add(cell.item);
+          result.push({ name: ITEM_NAMES[cell.item], desc: ITEM_DESCS[cell.item] });
+        }
+      }
+    }
+    return result;
+  }
+
   private handleAction(action: InputAction): void {
-    if (this.victoryShown) {
+    if (this.victoryShown || this.shopOpen) {
       return;
     }
 
-    if (action === 'up' || action === 'down' || action === 'left' || action === 'right') {
-      if (this.player.isMoving) {
-        this.pendingDirection = action;
-        return;
-      }
-
-      if (this.battleAnimation) {
-        return;
-      }
-
-      this.tryMove(action);
+    if (this.player.isMoving) {
+      this.pendingDirection = action;
       return;
     }
 
-    if (this.player.isMoving || this.battleAnimation) {
+    if (this.battleAnimation) {
       return;
     }
 
-    if (action === 'attack') {
-      this.attackForward();
-      return;
-    }
-
-    this.showMessage(useInventoryItem(this.player));
+    this.tryMove(action);
   }
 
   private tryMove(direction: Direction): void {
@@ -200,40 +310,32 @@ export class GameEngine {
     }
 
     if (cell.terrain === 'wall') {
-      this.showMessage('前面是墙');
       return;
     }
 
     if (cell.door) {
-      const doorName = this.getDoorName(cell.door);
       const opened = consumeDoorKey(this.player, cell.door);
       if (!opened) {
-        this.showMessage(`${doorName}还打不开`);
+        this.showMessage('钥匙不够');
         return;
       }
 
       cell.door = undefined;
-      this.showMessage(`${doorName}打开了`);
+      this.showMessage('开门');
       return;
     }
 
     if (cell.monster) {
-      this.startBattle(cell, nextX, nextY, true);
+      this.startBattle(cell, nextX, nextY);
+      return;
+    }
+
+    if (cell.merchant) {
+      this.openShop();
       return;
     }
 
     this.startMove(nextX, nextY, performance.now());
-  }
-
-  private attackForward(): void {
-    const { x, y } = this.getFacingTarget();
-    const cell = this.currentFloor.grid[y]?.[x];
-    if (!cell?.monster) {
-      this.showMessage('前方没有怪物');
-      return;
-    }
-
-    this.startBattle(cell, x, y, false);
   }
 
   private startMove(targetGridX: number, targetGridY: number, now: number): void {
@@ -283,13 +385,13 @@ export class GameEngine {
     this.tryConsumePendingDirection();
   }
 
-  private startBattle(cell: Cell, x: number, y: number, moveIntoCell: boolean): void {
+  private startBattle(cell: Cell, x: number, y: number): void {
     const monsterId = cell.monster as MonsterId;
     const monster = MONSTERS[monsterId];
     const estimate = estimateBattle(this.player.hp, this.player.atk, this.player.def, monsterId);
 
     if (estimate.fatal) {
-      this.showMessage(`暂时打不过，挑战 ${monster.name} 需要承受 ${estimate.damageTaken} 点伤害`);
+      this.showMessage(`打不过 ${monster.name}，需承受 ${estimate.damageTaken} 伤害`);
       return;
     }
 
@@ -302,9 +404,8 @@ export class GameEngine {
       gridY: y,
       monsterId,
       estimate,
-      moveIntoCell,
-      playerDashX: 0,
-      playerDashY: 0,
+      playerDashX: dx * 6,
+      playerDashY: dy * 6,
       monsterShakeX: 0,
       monsterShakeY: 0,
       monsterFlashAlpha: 0,
@@ -312,10 +413,6 @@ export class GameEngine {
 
     this.addFloatingText(`-${estimate.playerHit}`, x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + 10, '#ff5f56', now, FLOAT_DURATION);
     this.addFloatingText(`-${estimate.damageTaken}`, this.player.visualX + TILE_SIZE / 2, this.player.visualY - 4, '#ffb3b3', now, FLOAT_DURATION);
-
-    // 冲刺和回弹只影响渲染，不改逻辑坐标。
-    this.battleAnimation.playerDashX = dx * 6;
-    this.battleAnimation.playerDashY = dy * 6;
   }
 
   private updateBattle(now: number): void {
@@ -353,17 +450,21 @@ export class GameEngine {
     this.player.exp += monster.exp;
     cell.monster = undefined;
 
-    if (battle.moveIntoCell) {
-      this.player.x = battle.gridX;
-      this.player.y = battle.gridY;
-      this.player.visualX = battle.gridX * TILE_SIZE;
-      this.player.visualY = battle.gridY * TILE_SIZE;
-    }
+    this.player.x = battle.gridX;
+    this.player.y = battle.gridY;
+    this.player.visualX = battle.gridX * TILE_SIZE;
+    this.player.visualY = battle.gridY * TILE_SIZE;
 
     const now = performance.now();
     this.addFloatingText(`+${monster.gold}G`, battle.gridX * TILE_SIZE + TILE_SIZE / 2, battle.gridY * TILE_SIZE + 2, '#f6d04d', now, 650);
     this.addFloatingText(`+${monster.exp}EXP`, battle.gridX * TILE_SIZE + TILE_SIZE / 2, battle.gridY * TILE_SIZE + 18, '#9be564', now, 650);
-    this.showMessage(`击败${monster.name}，损失 ${battle.estimate.damageTaken} HP`);
+    this.showMessage(`击败${monster.name} -${battle.estimate.damageTaken}HP`);
+
+    const lvMsgs = checkLevelUp(this.player);
+    for (const msg of lvMsgs) {
+      this.addFloatingText('LEVEL UP!', this.player.visualX + TILE_SIZE / 2, this.player.visualY - 10, '#ffd700', now, 800);
+      this.showMessage(msg);
+    }
 
     this.battleAnimation = undefined;
 
@@ -373,10 +474,7 @@ export class GameEngine {
       return;
     }
 
-    if (battle.moveIntoCell) {
-      this.resolveCellArrival(this.currentFloor.grid[this.player.y][this.player.x]);
-    }
-
+    this.resolveCellArrival(this.currentFloor.grid[this.player.y][this.player.x]);
     this.tryConsumePendingDirection();
   }
 
@@ -385,6 +483,10 @@ export class GameEngine {
       const item = cell.item;
       cell.item = undefined;
       this.showMessage(applyItem(this.player, item));
+      const lvMsgs = checkLevelUp(this.player);
+      for (const msg of lvMsgs) {
+        this.showMessage(msg);
+      }
     }
 
     this.handleStair(cell);
@@ -399,9 +501,10 @@ export class GameEngine {
 
       this.floorIndex += 1;
       const downStair = findStair(this.currentFloor, 'stair-down');
-      this.placePlayer(downStair.x, downStair.y);
+      const adj = findAdjacentFloor(this.currentFloor, downStair.x, downStair.y);
+      this.placePlayer(adj.x, adj.y);
       this.pendingDirection = undefined;
-      this.showMessage(`来到第 ${this.floorIndex + 1} 层：${this.currentFloor.name}`);
+      this.showMessage(`${this.currentFloor.name}`);
       return;
     }
 
@@ -413,9 +516,10 @@ export class GameEngine {
 
       this.floorIndex -= 1;
       const upStair = findStair(this.currentFloor, 'stair-up');
-      this.placePlayer(upStair.x, upStair.y);
+      const adj = findAdjacentFloor(this.currentFloor, upStair.x, upStair.y);
+      this.placePlayer(adj.x, adj.y);
       this.pendingDirection = undefined;
-      this.showMessage(`回到第 ${this.floorIndex + 1} 层：${this.currentFloor.name}`);
+      this.showMessage(`${this.currentFloor.name}`);
     }
   }
 
@@ -439,37 +543,11 @@ export class GameEngine {
     this.tryMove(nextDirection);
   }
 
-  private getFacingTarget(): { x: number; y: number } {
-    const { dx, dy } = this.directionToVector(this.player.dir);
-    return { x: this.player.x + dx, y: this.player.y + dy };
-  }
-
   private directionToVector(direction: Direction): { dx: number; dy: number } {
-    if (direction === 'up') {
-      return { dx: 0, dy: -1 };
-    }
-
-    if (direction === 'down') {
-      return { dx: 0, dy: 1 };
-    }
-
-    if (direction === 'left') {
-      return { dx: -1, dy: 0 };
-    }
-
+    if (direction === 'up') return { dx: 0, dy: -1 };
+    if (direction === 'down') return { dx: 0, dy: 1 };
+    if (direction === 'left') return { dx: -1, dy: 0 };
     return { dx: 1, dy: 0 };
-  }
-
-  private getDoorName(color: 'yellow' | 'blue' | 'red'): string {
-    if (color === 'yellow') {
-      return '黄门';
-    }
-
-    if (color === 'blue') {
-      return '蓝门';
-    }
-
-    return '红门';
   }
 
   private showMessage(text: string): void {
@@ -484,15 +562,7 @@ export class GameEngine {
   }
 
   private addFloatingText(text: string, x: number, y: number, color: string, start: number, duration: number): void {
-    this.floatingTexts.push({
-      text,
-      x,
-      y,
-      rise: 30,
-      color,
-      start,
-      duration,
-    });
+    this.floatingTexts.push({ text, x, y, rise: 30, color, start, duration });
   }
 
   private getFloatingTextRenderState(now: number): FloatingTextRenderState[] {
@@ -510,9 +580,7 @@ export class GameEngine {
 
   private getBattleRenderState(): BattleRenderState | undefined {
     const battle = this.battleAnimation;
-    if (!battle) {
-      return undefined;
-    }
+    if (!battle) return undefined;
 
     return {
       active: true,
@@ -542,4 +610,17 @@ function findStair(floor: FloorDefinition, terrain: 'stair-up' | 'stair-down'): 
   }
 
   throw new Error(`Failed to find ${terrain} on floor ${floor.id}.`);
+}
+
+function findAdjacentFloor(floor: FloorDefinition, sx: number, sy: number): { x: number; y: number } {
+  const dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+  for (const [dx, dy] of dirs) {
+    const nx = sx + dx;
+    const ny = sy + dy;
+    const cell = floor.grid[ny]?.[nx];
+    if (cell && cell.terrain === 'floor' && !cell.monster && !cell.door && !cell.merchant) {
+      return { x: nx, y: ny };
+    }
+  }
+  return { x: sx, y: sy };
 }

@@ -32,7 +32,10 @@ type AtlasMap = {
   keyRed: AtlasEntry;
   redPotion: AtlasEntry;
   bluePotion: AtlasEntry;
-  gem: AtlasEntry;
+  redGem: AtlasEntry;
+  blueGem: AtlasEntry;
+  treasure: AtlasEntry;
+  merchant: AtlasEntry;
   zombie: AtlasEntry;
   skeleton: AtlasEntry;
   spider: AtlasEntry;
@@ -43,29 +46,28 @@ type AtlasMap = {
 
 export const ATLAS: AtlasMap = {
   hero: { src: '/sprites/hero.png', frameW: 32, frameH: 48, dirs: { down: 0, left: 1, right: 2, up: 3 } },
-  // terrains.png
-  floor:     { src: '/sprites/terrains.png', x: 0, y: 0  * 32, w: 32, h: 32 }, // ground
-  wall:      null, // 走 animates.png 的 yellowWall(10)/whiteWall(11)/blueWall(12) 任选；或者直接用 sWall* 系列。简单起见用 ground 反色或自己画一个深色矩形
-  stairUp:   { src: '/sprites/terrains.png', x: 0, y: 6  * 32, w: 32, h: 32 }, // upFloor
-  stairDown: { src: '/sprites/terrains.png', x: 0, y: 5  * 32, w: 32, h: 32 }, // downFloor
-  // animates.png（门，取每一帧的第一帧 = x:0）
+  floor:     { src: '/sprites/terrains.png', x: 0, y: 0  * 32, w: 32, h: 32 },
+  wall:      null,
+  stairUp:   { src: '/sprites/terrains.png', x: 0, y: 6  * 32, w: 32, h: 32 },
+  stairDown: { src: '/sprites/terrains.png', x: 0, y: 5  * 32, w: 32, h: 32 },
   doorYellow: { src: '/sprites/animates.png', x: 0, y: 4 * 32, w: 32, h: 32 },
   doorBlue:   { src: '/sprites/animates.png', x: 0, y: 5 * 32, w: 32, h: 32 },
   doorRed:    { src: '/sprites/animates.png', x: 0, y: 6 * 32, w: 32, h: 32 },
-  // items.png
   keyYellow:  { src: '/sprites/items.png', x: 0, y: 0  * 32, w: 32, h: 32 },
   keyBlue:    { src: '/sprites/items.png', x: 0, y: 1  * 32, w: 32, h: 32 },
   keyRed:     { src: '/sprites/items.png', x: 0, y: 2  * 32, w: 32, h: 32 },
   redPotion:  { src: '/sprites/items.png', x: 0, y: 20 * 32, w: 32, h: 32 },
   bluePotion: { src: '/sprites/items.png', x: 0, y: 21 * 32, w: 32, h: 32 },
-  gem:        { src: '/sprites/items.png', x: 0, y: 17 * 32, w: 32, h: 32 }, // blueGem
-  // enemys.png（取左列 x:0，每个怪 32×32）
+  redGem:     { src: '/sprites/items.png', x: 0, y: 16 * 32, w: 32, h: 32 },
+  blueGem:    { src: '/sprites/items.png', x: 0, y: 17 * 32, w: 32, h: 32 },
+  treasure:   { src: '/sprites/items.png', x: 0, y: 11 * 32, w: 32, h: 32 },
+  merchant:   { src: '/sprites/enemys.png', x: 0, y: 46 * 32, w: 32, h: 32 },
   zombie:    { src: '/sprites/enemys.png', x: 0, y: 12 * 32, w: 32, h: 32 },
   skeleton:  { src: '/sprites/enemys.png', x: 0, y: 8  * 32, w: 32, h: 32 },
-  spider:    { src: '/sprites/enemys.png', x: 0, y: 4  * 32, w: 32, h: 32 }, // bat
-  creeper:   { src: '/sprites/enemys.png', x: 0, y: 18 * 32, w: 32, h: 32 }, // brownWizard
-  enderman:  { src: '/sprites/enemys.png', x: 0, y: 27 * 32, w: 32, h: 32 }, // darkKnight
-  wither:    { src: '/sprites/enemys.png', x: 0, y: 56 * 32, w: 32, h: 32 }, // dragon (BOSS)
+  spider:    { src: '/sprites/enemys.png', x: 0, y: 4  * 32, w: 32, h: 32 },
+  creeper:   { src: '/sprites/enemys.png', x: 0, y: 18 * 32, w: 32, h: 32 },
+  enderman:  { src: '/sprites/enemys.png', x: 0, y: 27 * 32, w: 32, h: 32 },
+  wither:    { src: '/sprites/enemys.png', x: 0, y: 56 * 32, w: 32, h: 32 },
 };
 
 export type AtlasKey = Exclude<keyof AtlasMap, 'hero'>;
@@ -103,7 +105,6 @@ export class SpriteLoader {
     dx: number,
     dy: number,
     scale: number,
-    frameOverride?: number,
   ): void {
     const entry = ATLAS[atlasKey];
     if (!entry) {
@@ -116,8 +117,7 @@ export class SpriteLoader {
       return;
     }
 
-    const sourceY = frameOverride === undefined ? entry.y : frameOverride * entry.h;
-    ctx.drawImage(image, entry.x, sourceY, entry.w, entry.h, dx, dy, entry.w * scale, entry.h * scale);
+    ctx.drawImage(image, entry.x, entry.y, entry.w, entry.h, dx, dy, entry.w * scale, entry.h * scale);
   }
 
   drawHero(
@@ -134,22 +134,20 @@ export class SpriteLoader {
       return;
     }
 
-    // 将 32x48 的角色等比缩进 32x32 格子内：
-    // 跳过源图顶部 8px（多为头顶空白/装饰），保留 32x40 主体，再渲染为 32x32。
     const sourceX = frame * hero.frameW;
-    const sourceY = hero.dirs[dir] * hero.frameH + 8;
-    const sourceH = hero.frameH - 8; // 40
-    const targetSize = TILE_SIZE * scale;
+    const sourceY = hero.dirs[dir] * hero.frameH;
+    const targetW = hero.frameW * scale;
+    const targetH = hero.frameH * scale;
     ctx.drawImage(
       image,
       sourceX,
       sourceY,
       hero.frameW,
-      sourceH,
+      hero.frameH,
       dx,
-      dy,
-      targetSize,
-      targetSize,
+      dy - (hero.frameH - TILE_SIZE) * scale,
+      targetW,
+      targetH,
     );
   }
 

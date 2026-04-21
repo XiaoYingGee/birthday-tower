@@ -19,12 +19,12 @@ export interface BattleEstimate {
 }
 
 export const MONSTERS: Record<MonsterId, MonsterDefinition> = {
-  zombie: { id: 'zombie', name: '僵尸', hp: 18, atk: 10, def: 2, gold: 5, exp: 3 },
-  skeleton: { id: 'skeleton', name: '骷髅', hp: 26, atk: 14, def: 4, gold: 7, exp: 5 },
-  spider: { id: 'spider', name: '蜘蛛', hp: 34, atk: 16, def: 5, gold: 9, exp: 6 },
-  creeper: { id: 'creeper', name: '苦力怕', hp: 48, atk: 20, def: 8, gold: 12, exp: 8 },
-  enderman: { id: 'enderman', name: '末影人', hp: 70, atk: 27, def: 12, gold: 16, exp: 10 },
-  wither: { id: 'wither', name: '凋灵', hp: 170, atk: 34, def: 18, gold: 80, exp: 50 },
+  zombie:   { id: 'zombie',   name: '僵尸',     hp: 25,   atk: 12,  def: 2,  gold: 5,  exp: 12 },
+  skeleton: { id: 'skeleton', name: '骷髅',     hp: 50,   atk: 18,  def: 5,  gold: 10, exp: 20 },
+  spider:   { id: 'spider',   name: '蝙蝠',     hp: 70,   atk: 22,  def: 8,  gold: 15, exp: 25 },
+  creeper:  { id: 'creeper',  name: '棕巫师',   hp: 100,  atk: 28,  def: 12, gold: 20, exp: 35 },
+  enderman: { id: 'enderman', name: '暗黑骑士', hp: 150,  atk: 36,  def: 16, gold: 30, exp: 50 },
+  wither:   { id: 'wither',   name: '龙王',     hp: 1500, atk: 120, def: 55, gold: 0,  exp: 0  },
 };
 
 export function estimateBattle(playerHp: number, playerAtk: number, playerDef: number, monsterId: MonsterId): BattleEstimate {

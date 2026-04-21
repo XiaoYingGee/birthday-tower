@@ -1,4 +1,4 @@
-export type InputAction = 'up' | 'down' | 'left' | 'right' | 'attack' | 'item';
+export type InputAction = 'up' | 'down' | 'left' | 'right';
 
 const KEY_MAP: Record<string, InputAction | undefined> = {
   ArrowUp: 'up',
@@ -13,9 +13,6 @@ const KEY_MAP: Record<string, InputAction | undefined> = {
   S: 'down',
   d: 'right',
   D: 'right',
-  ' ': 'attack',
-  e: 'item',
-  E: 'item',
 };
 
 export class InputManager {
@@ -69,10 +66,7 @@ export class InputManager {
     this.activeButton = button;
     button.classList.add('pressed');
     this.onAction(action);
-
-    if (action === 'up' || action === 'down' || action === 'left' || action === 'right') {
-      this.repeatTimer = window.setInterval(() => this.onAction(action), 180);
-    }
+    this.repeatTimer = window.setInterval(() => this.onAction(action), 180);
   }
 
   private clearActiveButton(): void {

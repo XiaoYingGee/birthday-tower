@@ -13,9 +13,14 @@
   <body>
     <div id="app">
       <div id="game-shell">
-        <canvas id="game-canvas" aria-label="生日魔塔游戏画布"></canvas>
+        <div id="banner"></div>
+        <div id="game-area">
+          <div id="left-panel" class="side-panel"></div>
+          <canvas id="game-canvas" aria-label="生日魔塔游戏画布"></canvas>
+          <div id="right-panel" class="side-panel"></div>
+        </div>
         <div id="touch-controls" aria-hidden="false">
-          <div class="control-pad control-pad-left">
+          <div class="control-pad">
             <button class="control-btn spacer" tabindex="-1" aria-hidden="true"></button>
             <button class="control-btn" data-action="up">↑</button>
             <button class="control-btn spacer" tabindex="-1" aria-hidden="true"></button>
@@ -23,14 +28,20 @@
             <button class="control-btn" data-action="down">↓</button>
             <button class="control-btn" data-action="right">→</button>
           </div>
-          <div class="control-pad control-pad-right">
-            <button class="action-btn" data-action="attack">攻击</button>
-            <button class="action-btn" data-action="item">物品</button>
-          </div>
         </div>
         <div id="message" role="status" aria-live="polite"></div>
+        <div id="shop-overlay">
+          <div class="shop-panel">
+            <div class="shop-title">商人</div>
+            <div class="shop-gold">金币: 0</div>
+            <button class="shop-btn" data-shop="hp">HP+100 (30金)</button>
+            <button class="shop-btn" data-shop="atk">攻+5 (50金)</button>
+            <button class="shop-btn" data-shop="def">防+5 (50金)</button>
+            <button class="shop-close">关闭</button>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
-  </html>
+</html>

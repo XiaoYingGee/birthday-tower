@@ -1,5 +1,5 @@
 export type DoorColor = 'yellow' | 'blue' | 'red';
-export type ItemType = 'redPotion' | 'bluePotion' | 'gem' | 'yellowKey' | 'blueKey' | 'redKey';
+export type ItemType = 'redPotion' | 'bluePotion' | 'redGem' | 'blueGem' | 'treasure' | 'yellowKey' | 'blueKey' | 'redKey';
 export type MonsterId = 'zombie' | 'skeleton' | 'spider' | 'creeper' | 'enderman' | 'wither';
 export type TerrainType = 'floor' | 'wall' | 'stair-up' | 'stair-down';
 
@@ -8,6 +8,7 @@ export interface Cell {
   item?: ItemType;
   door?: DoorColor;
   monster?: MonsterId;
+  merchant?: boolean;
 }
 
 export interface FloorDefinition {
@@ -29,14 +30,17 @@ const CELL_LOOKUP: Record<string, Cell> = {
   b: { terrain: 'floor', item: 'blueKey' },
   r: { terrain: 'floor', item: 'redKey' },
   h: { terrain: 'floor', item: 'redPotion' },
-  p: { terrain: 'floor', item: 'bluePotion' },
-  g: { terrain: 'floor', item: 'gem' },
-  z: { terrain: 'floor', monster: 'zombie' },
-  s: { terrain: 'floor', monster: 'skeleton' },
-  w: { terrain: 'floor', monster: 'spider' },
-  c: { terrain: 'floor', monster: 'creeper' },
-  e: { terrain: 'floor', monster: 'enderman' },
-  W: { terrain: 'floor', monster: 'wither' },
+  H: { terrain: 'floor', item: 'bluePotion' },
+  a: { terrain: 'floor', item: 'redGem' },
+  d: { terrain: 'floor', item: 'blueGem' },
+  T: { terrain: 'floor', item: 'treasure' },
+  S: { terrain: 'floor', merchant: true },
+  Z: { terrain: 'floor', monster: 'zombie' },
+  K: { terrain: 'floor', monster: 'skeleton' },
+  F: { terrain: 'floor', monster: 'spider' },
+  W: { terrain: 'floor', monster: 'creeper' },
+  E: { terrain: 'floor', monster: 'enderman' },
+  X: { terrain: 'floor', monster: 'wither' },
 };
 
 export function cloneFloor(floor: FloorDefinition): FloorDefinition {

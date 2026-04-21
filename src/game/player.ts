@@ -1,13 +1,5 @@
 import type { DoorColor, ItemType } from './floor';
 
-export interface Inventory {
-  redPotion: number;
-  bluePotion: number;
-  yellow: number;
-  blue: number;
-  red: number;
-}
-
 export interface PlayerState {
   x: number;
   y: number;
@@ -18,12 +10,15 @@ export interface PlayerState {
   def: number;
   gold: number;
   exp: number;
-  inventory: Inventory;
+  level: number;
+  keys: number;
   dir: 'up' | 'down' | 'left' | 'right';
   isMoving: boolean;
   walkFrame: 0 | 1 | 2;
   walkFrameTimer: number;
 }
+
+const LEVEL_UP_EXP = 100;
 
 export function createPlayer(x: number, y: number): PlayerState {
   return {
@@ -32,17 +27,12 @@ export function createPlayer(x: number, y: number): PlayerState {
     visualX: x * 32,
     visualY: y * 32,
     hp: 100,
-    atk: 12,
-    def: 6,
+    atk: 10,
+    def: 10,
     gold: 0,
     exp: 0,
-    inventory: {
-      redPotion: 0,
-      bluePotion: 0,
-      yellow: 0,
-      blue: 0,
-      red: 0,
-    },
+    level: 1,
+    keys: 0,
     dir: 'down',
     isMoving: false,
     walkFrame: 0,
@@ -50,61 +40,52 @@ export function createPlayer(x: number, y: number): PlayerState {
   };
 }
 
+export function checkLevelUp(player: PlayerState): string[] {
+  const messages: string[] = [];
+  while (player.exp >= LEVEL_UP_EXP) {
+    player.exp -= LEVEL_UP_EXP;
+    player.level += 1;
+    player.hp += 100;
+    player.atk += 5;
+    player.def += 5;
+    messages.push(`升级！Lv${player.level} HP+100 攻+5 防+5`);
+  }
+  return messages;
+}
+
 export function applyItem(player: PlayerState, item: ItemType): string {
   switch (item) {
     case 'yellowKey':
-      player.inventory.yellow += 1;
+      player.keys += 1;
       return '拿到黄钥匙';
     case 'blueKey':
-      player.inventory.blue += 1;
       return '拿到蓝钥匙';
     case 'redKey':
-      player.inventory.red += 1;
       return '拿到红钥匙';
     case 'redPotion':
-      player.inventory.redPotion += 1;
-      return '拿到红药水，按 E / 物品 使用';
+      player.hp += 50;
+      return '红药水 HP+50';
     case 'bluePotion':
-      player.inventory.bluePotion += 1;
-      return '拿到蓝药水，按 E / 物品 使用';
-    case 'gem':
-      player.atk += 2;
-      player.def += 2;
-      return '宝石发光，攻击+2 防御+2';
+      player.hp += 150;
+      return '蓝药水 HP+150';
+    case 'redGem':
+      player.atk += 10;
+      return '红宝石 攻+10';
+    case 'blueGem':
+      player.def += 10;
+      return '蓝宝石 防+10';
+    case 'treasure':
+      player.hp *= 2;
+      player.atk *= 2;
+      player.def *= 2;
+      return '★ 神秘宝物！HP/攻/防 全部翻倍！';
   }
 }
 
 export function consumeDoorKey(player: PlayerState, color: DoorColor): boolean {
-  if (color === 'yellow' && player.inventory.yellow > 0) {
-    player.inventory.yellow -= 1;
+  if (color === 'yellow' && player.keys > 0) {
+    player.keys -= 1;
     return true;
   }
-
-  if (color === 'blue' && player.inventory.blue > 0) {
-    player.inventory.blue -= 1;
-    return true;
-  }
-
-  if (color === 'red' && player.inventory.red > 0) {
-    player.inventory.red -= 1;
-    return true;
-  }
-
   return false;
-}
-
-export function useInventoryItem(player: PlayerState): string {
-  if (player.inventory.redPotion > 0) {
-    player.inventory.redPotion -= 1;
-    player.hp += 25;
-    return '喝下红药水，HP +25';
-  }
-
-  if (player.inventory.bluePotion > 0) {
-    player.inventory.bluePotion -= 1;
-    player.atk += 3;
-    return '喝下蓝药水，攻击 +3';
-  }
-
-  return '背包里没有可用物品';
 }

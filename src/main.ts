@@ -15,6 +15,22 @@ function blockMobileGestures(): void {
 
 blockMobileGestures();
 
+function setupLandscapeHint(): void {
+  if (!matchMedia('(pointer: coarse)').matches) return;
+  const hint = document.createElement('div');
+  hint.id = 'landscape-hint';
+  hint.innerHTML = '<div class="landscape-icon">📱↻</div><div>请旋转设备至横屏模式</div>';
+  document.body.appendChild(hint);
+  const check = () => {
+    hint.classList.toggle('visible', window.innerHeight > window.innerWidth);
+  };
+  window.addEventListener('resize', check);
+  window.addEventListener('orientationchange', check);
+  check();
+}
+
+setupLandscapeHint();
+
 function requireEl<T extends HTMLElement>(id: string): T {
   const el = document.querySelector<T>(`#${id}`);
   if (!el) throw new Error(`Missing element #${id}`);
@@ -30,10 +46,14 @@ const bannerEl = requireEl<HTMLElement>('banner');
 const rightPanel = requireEl<HTMLElement>('right-panel');
 const shopOverlay = requireEl<HTMLElement>('shop-overlay');
 const princessOverlay = requireEl<HTMLElement>('princess-overlay');
+const keyshopOverlay = requireEl<HTMLElement>('keyshop-overlay');
 const battleConfirm = requireEl<HTMLElement>('battle-confirm');
 const deathOverlay = requireEl<HTMLElement>('death-overlay');
 const restartBtn = requireEl<HTMLElement>('restart-btn');
 const restartConfirm = requireEl<HTMLElement>('restart-confirm');
+const treasureConfirm = requireEl<HTMLElement>('treasure-confirm');
+const fairyConfirm = requireEl<HTMLElement>('fairy-confirm');
+const victoryChest = requireEl<HTMLElement>('victory-chest');
 
 const dpadSideBtn = document.getElementById('dpad-side-btn');
 if (dpadSideBtn) {
@@ -74,10 +94,14 @@ async function bootstrap(): Promise<void> {
     rightPanel,
     shopOverlay,
     princessOverlay,
+    keyshopOverlay,
     battleConfirm,
     deathOverlay,
     restartBtn,
     restartConfirm,
+    treasureConfirm,
+    fairyConfirm,
+    victoryChest,
     playerName,
     playerAge,
     loader,

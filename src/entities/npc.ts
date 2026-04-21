@@ -111,3 +111,74 @@ export function createPrincess(overlay: HTMLElement, ctx: GameContext): Princess
     isOpen() { return open; },
   };
 }
+
+export interface KeyShopHandle {
+  open(): void;
+  close(): void;
+  isOpen(): boolean;
+}
+
+const KEY_COST = 100;
+const KEY_LIMIT = 5;
+
+export function createKeyShop(overlay: HTMLElement, ctx: GameContext): KeyShopHandle {
+  let open = false;
+  let sold = 0;
+
+  const keyMap: Record<string, 'yellowKeys' | 'blueKeys' | 'redKeys'> = {
+    yellow: 'yellowKeys',
+    blue: 'blueKeys',
+    red: 'redKeys',
+  };
+
+  overlay.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest<HTMLButtonElement>('[data-keyshop]');
+    if (!btn) {
+      if (target.closest('.shop-close')) {
+        handle.close();
+      }
+      return;
+    }
+
+    const color = btn.dataset.keyshop!;
+    const key = keyMap[color];
+    if (!key || ctx.player.gold < KEY_COST || sold >= KEY_LIMIT) return;
+
+    ctx.player.gold -= KEY_COST;
+    ctx.player[key] += 1;
+    sold += 1;
+
+    const names: Record<string, string> = { yellow: '黄', blue: '蓝', red: '红' };
+    ctx.showMessage(`购买${names[color]}钥匙！剩余${KEY_LIMIT - sold}次`);
+    updateButtons();
+    ctx.save();
+  });
+
+  function updateButtons(): void {
+    const gold = ctx.player.gold;
+    const allBtns = overlay.querySelectorAll<HTMLButtonElement>('[data-keyshop]');
+    for (const btn of allBtns) {
+      btn.disabled = gold < KEY_COST || sold >= KEY_LIMIT;
+    }
+    const goldEl = overlay.querySelector('.shop-gold');
+    if (goldEl) goldEl.textContent = `金币: ${gold}`;
+    const remainEl = overlay.querySelector('.keyshop-remain');
+    if (remainEl) remainEl.textContent = `剩余: ${KEY_LIMIT - sold}`;
+  }
+
+  const handle: KeyShopHandle = {
+    open() {
+      open = true;
+      updateButtons();
+      overlay.classList.add('visible');
+    },
+    close() {
+      open = false;
+      overlay.classList.remove('visible');
+    },
+    isOpen() { return open; },
+  };
+
+  return handle;
+}

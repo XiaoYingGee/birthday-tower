@@ -9,6 +9,7 @@ type AtlasEntry = {
   y: number;
   w: number;
   h: number;
+  frames?: number;
 };
 
 type HeroEntry = {
@@ -21,7 +22,7 @@ type HeroEntry = {
 type AtlasMap = {
   hero: HeroEntry;
   floor: AtlasEntry;
-  wall: null;
+  wall: AtlasEntry;
   stairUp: AtlasEntry;
   stairDown: AtlasEntry;
   doorYellow: AtlasEntry;
@@ -37,6 +38,8 @@ type AtlasMap = {
   treasure: AtlasEntry;
   merchant: AtlasEntry;
   princess: AtlasEntry;
+  fairy: AtlasEntry;
+  keyShop: AtlasEntry;
   zombie: AtlasEntry;
   skeleton: AtlasEntry;
   spider: AtlasEntry;
@@ -50,8 +53,8 @@ type AtlasMap = {
 
 export const ATLAS: AtlasMap = {
   hero: { src: '/sprites/hero.png', frameW: 32, frameH: 48, dirs: { down: 0, left: 1, right: 2, up: 3 } },
-  floor:     { src: '/sprites/terrains.png', x: 0, y: 0  * 32, w: 32, h: 32 },
-  wall:      null,
+  floor:     { src: '/sprites/terrains.png', x: 0, y: 0 * 32, w: 32, h: 32 },
+  wall:      null as unknown as AtlasEntry,
   stairUp:   { src: '/sprites/terrains.png', x: 0, y: 6  * 32, w: 32, h: 32 },
   stairDown: { src: '/sprites/terrains.png', x: 0, y: 5  * 32, w: 32, h: 32 },
   doorYellow: { src: '/sprites/animates.png', x: 0, y: 4 * 32, w: 32, h: 32 },
@@ -64,9 +67,11 @@ export const ATLAS: AtlasMap = {
   bluePotion: { src: '/sprites/items.png', x: 0, y: 21 * 32, w: 32, h: 32 },
   redGem:     { src: '/sprites/items.png', x: 0, y: 16 * 32, w: 32, h: 32 },
   blueGem:    { src: '/sprites/items.png', x: 0, y: 17 * 32, w: 32, h: 32 },
-  treasure:   { src: '/sprites/items.png', x: 0, y: 11 * 32, w: 32, h: 32 },
+  treasure:   { src: '/sprites/items.png', x: 0, y: 19 * 32, w: 32, h: 32 },
   merchant:   { src: '/sprites/npcs.png', x: 0, y: 1 * 32, w: 32, h: 32 },
   princess:   { src: '/sprites/npcs.png', x: 0, y: 11 * 32, w: 32, h: 32 },
+  fairy:      { src: '/sprites/npcs.png', x: 0, y: 3 * 32, w: 32, h: 32 },
+  keyShop:    { src: '/sprites/npcs.png', x: 0, y: 0 * 32, w: 32, h: 32 },
   zombie:    { src: '/sprites/enemys.png', x: 0, y: 12 * 32, w: 32, h: 32 },
   skeleton:  { src: '/sprites/enemys.png', x: 0, y: 8  * 32, w: 32, h: 32 },
   spider:    { src: '/sprites/enemys.png', x: 0, y: 4  * 32, w: 32, h: 32 },
@@ -75,7 +80,7 @@ export const ATLAS: AtlasMap = {
   swordsman: { src: '/sprites/enemys.png', x: 0, y: 23 * 32, w: 32, h: 32 },
   redWizard: { src: '/sprites/enemys.png', x: 0, y: 19 * 32, w: 32, h: 32 },
   enderman:  { src: '/sprites/enemys.png', x: 0, y: 27 * 32, w: 32, h: 32 },
-  wither:    { src: '/sprites/enemys.png', x: 0, y: 56 * 32, w: 32, h: 32 },
+  wither:    { src: '/sprites/enemys.png', x: 0, y: 63 * 32, w: 32, h: 32 },
 };
 
 export type AtlasKey = Exclude<keyof AtlasMap, 'hero'>;
@@ -129,9 +134,14 @@ export class SpriteLoader {
     }
 
     let sx = entry.x;
-    if (now !== undefined && (entry.src.includes('enemys') || entry.src.includes('npcs'))) {
-      const frame = Math.floor(now / ANIM_INTERVAL) % 2;
-      sx = frame * 32;
+    if (now !== undefined) {
+      if (entry.frames) {
+        const frame = Math.floor(now / ANIM_INTERVAL) % entry.frames;
+        sx = frame * entry.w;
+      } else if (entry.src.includes('enemys') || entry.src.includes('npcs')) {
+        const frame = Math.floor(now / ANIM_INTERVAL) % 2;
+        sx = frame * 32;
+      }
     }
 
     ctx.drawImage(image, sx, entry.y, entry.w, entry.h, dx, dy, entry.w * scale, entry.h * scale);

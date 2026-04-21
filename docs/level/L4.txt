@@ -3,11 +3,11 @@
 #####W#W#####
 #brER.#.RErb#
 #####W#W#####
-#CPC#.#.#.d.#
-#ECE#R#R#...#
-#dhd#.#.#...#
-#Y###E#C###.#
-#EBy#.#.#bb.#
+#CPC#.#.#yQy#
+#ECE#R#R#ryr#
+#rhb#.#.#brb#
+#Y###E#C#aba#
+#EBy#.#.Bdad#
 #.###.#.#####
 #E.E.E#C.C!U#
 #############

@@ -46,9 +46,9 @@ export const CONFIG = {
     creeper: { name: '棕巫师', hp: 100, atk: 40, def: 20, gold: 15, exp: 16 },
     skeletonCaptain: { name: '骷髅队长', hp: 350, atk: 80, def: 40, gold: 30, exp: 30 },
     swordsman: { name: '剑士', hp: 450, atk: 110, def: 65, gold: 40, exp: 40 },
-    redWizard: { name: '红巫师', hp: 600, atk: 150, def: 90, gold: 50, exp: 50 },
+    redWizard: { name: '红巫师', hp: 600, atk: 360, def: 180, gold: 50, exp: 50 },
     enderman: { name: '暗黑骑士', hp: 200, atk: 55, def: 30, gold: 20, exp: 20 },
-    wither: { name: '龙王', hp: 1500, atk: 120, def: 55, gold: 0, exp: 0 },
+    wither: { name: '龙王', hp: 999, atk: 999, def: 300, gold: 100, exp: 100 },
   } as Record<MonsterId, MonsterConfig>,
   battle: {
     minPlayerHit: 1,

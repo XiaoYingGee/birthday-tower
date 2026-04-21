@@ -98,7 +98,7 @@ export function findAdjacentFloor(floor: FloorDefinition, sx: number, sy: number
     const nx = sx + dx;
     const ny = sy + dy;
     const cell = floor.grid[ny]?.[nx];
-    if (cell && cell.terrain === 'floor' && !cell.monster && !cell.door && !cell.merchant && !cell.princess) {
+    if (cell && cell.terrain === 'floor' && !cell.monster && !cell.door && !cell.merchant && !cell.princess && !cell.fairy && !cell.keyShop) {
       return { x: nx, y: ny };
     }
   }

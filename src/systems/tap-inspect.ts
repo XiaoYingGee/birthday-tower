@@ -1,7 +1,7 @@
 import type { GameContext } from '../core/game-context';
 import type { Renderer } from '../render/renderer';
 import { estimateBattle, MONSTERS } from '../entities/monster';
-import { HERO_QUOTES, MERCHANT_QUOTES, PRINCESS_QUOTES } from '../data/quotes';
+import { HERO_QUOTES, MERCHANT_QUOTES, PRINCESS_QUOTES, FAIRY_QUOTES, KEY_MERCHANT_QUOTES, BOSS_QUOTES } from '../data/quotes';
 
 const ITEM_DESC: Record<string, string> = {
   redPotion: '红药水：HP+50',
@@ -15,12 +15,14 @@ const ITEM_DESC: Record<string, string> = {
 };
 
 export function setupTapInspect(canvas: HTMLCanvasElement, renderer: Renderer, ctx: GameContext): void {
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+
   canvas.addEventListener('click', (e) => {
     const pos = renderer.screenToGrid(e.clientX, e.clientY);
     if (!pos) return;
 
     if (pos.x === ctx.player.x && pos.y === ctx.player.y) {
-      ctx.showMessage(HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)]);
+      ctx.showMessage(`${ctx.playerName}：${pick(HERO_QUOTES)}`);
       return;
     }
 
@@ -28,6 +30,10 @@ export function setupTapInspect(canvas: HTMLCanvasElement, renderer: Renderer, c
     if (!cell) return;
 
     if (cell.monster) {
+      if (cell.monster === 'wither') {
+        ctx.showMessage(`龙王：${pick(BOSS_QUOTES)}`);
+        return;
+      }
       const m = MONSTERS[cell.monster];
       const est = estimateBattle(ctx.player.hp, ctx.player.atk, ctx.player.def, cell.monster);
       const dmgText = est.fatal ? '⚠必败' : est.damageTaken === 0 ? '无伤' : `-${est.damageTaken}HP`;
@@ -36,12 +42,22 @@ export function setupTapInspect(canvas: HTMLCanvasElement, renderer: Renderer, c
     }
 
     if (cell.merchant) {
-      ctx.showMessage(MERCHANT_QUOTES[Math.floor(Math.random() * MERCHANT_QUOTES.length)]);
+      ctx.showMessage(`商人：${pick(MERCHANT_QUOTES)}`);
       return;
     }
 
     if (cell.princess) {
-      ctx.showMessage(PRINCESS_QUOTES[Math.floor(Math.random() * PRINCESS_QUOTES.length)]);
+      ctx.showMessage(`公主：${pick(PRINCESS_QUOTES)}`);
+      return;
+    }
+
+    if (cell.fairy) {
+      ctx.showMessage(`仙子：${pick(FAIRY_QUOTES)}`);
+      return;
+    }
+
+    if (cell.keyShop) {
+      ctx.showMessage(`钥匙商人：${pick(KEY_MERCHANT_QUOTES)}`);
       return;
     }
 

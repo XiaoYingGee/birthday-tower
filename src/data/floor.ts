@@ -10,6 +10,8 @@ export interface Cell {
   monster?: MonsterId;
   merchant?: boolean;
   princess?: boolean;
+  fairy?: boolean;
+  keyShop?: boolean;
 }
 
 export interface FloorDefinition {
@@ -39,6 +41,8 @@ const CELL_LOOKUP: Record<string, Cell> = {
   T: { terrain: 'floor', item: 'treasure' },
   S: { terrain: 'floor', merchant: true },
   P: { terrain: 'floor', princess: true },
+  L: { terrain: 'floor', fairy: true },
+  Q: { terrain: 'floor', keyShop: true },
   Z: { terrain: 'floor', monster: 'zombie' },
   K: { terrain: 'floor', monster: 'skeleton' },
   F: { terrain: 'floor', monster: 'spider' },

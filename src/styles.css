@@ -301,6 +301,89 @@ canvas {
   display: flex;
 }
 
+#keyshop-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 20;
+}
+
+#keyshop-overlay.visible {
+  display: flex;
+}
+
+.keyshop-remain {
+  color: #aaa;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+#treasure-confirm, #fairy-confirm {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 20;
+}
+
+#treasure-confirm.visible, #fairy-confirm.visible {
+  display: flex;
+}
+
+.fairy-body {
+  color: #9be564;
+  font-size: 15px;
+  margin: 8px 0 16px;
+}
+
+#victory-chest {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.8);
+  z-index: 30;
+  cursor: pointer;
+}
+
+#victory-chest.visible {
+  display: flex;
+}
+
+.chest-container {
+  text-align: center;
+  animation: chest-bounce 1s ease-in-out infinite;
+}
+
+.chest-icon {
+  font-size: 120px;
+  line-height: 1;
+}
+
+.chest-text {
+  color: #ffd166;
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 16px;
+  animation: chest-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes chest-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes chest-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .shop-panel {
   background: #1a1a2e;
   border: 2px solid #ffd166;
@@ -682,4 +765,27 @@ canvas {
   font-weight: 700;
   font-size: 10px;
   margin-bottom: 2px;
+}
+
+#landscape-hint {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.9);
+  color: #ffd166;
+  font-size: 18px;
+  font-weight: 700;
+  z-index: 100;
+}
+
+#landscape-hint.visible {
+  display: flex;
+}
+
+.landscape-icon {
+  font-size: 60px;
+  margin-bottom: 16px;
 }

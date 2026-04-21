@@ -111,13 +111,13 @@ export class Renderer {
 
     this.drawFloatingTexts(state);
 
-    this.bannerEl.textContent = `F${state.floorNumber} ${state.floorName}`;
+    this.bannerEl.textContent = `F${state.floorNumber}`;
 
     const p = state.player;
     let html =
       `<div class="panel-title"><strong>${state.playerName}</strong> <strong>Lv.${p.level}</strong>（${p.exp}/100）</div>` +
       '<hr class="panel-divider">' +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 20)}<span class="label">HP</span><span class="val">${p.hp}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/icons.png', 3)}<span class="label">HP</span><span class="val">${p.hp}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 50)}<span class="label">攻击</span><span class="val">${p.atk}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 55)}<span class="label">防御</span><span class="val">${p.def}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 11)}<span class="label">金币</span><span class="val">${p.gold}</span></div>` +
@@ -170,20 +170,15 @@ export class Renderer {
   };
 
   private drawCell(state: RenderState, cell: Cell, gridX: number, gridY: number, drawX: number, drawY: number, now: number): void {
-    const tileSprite: AtlasKey = cell.terrain === 'wall'
-      ? 'wall'
-      : cell.terrain === 'stair-up'
-        ? 'stairUp'
-        : cell.terrain === 'stair-down'
-          ? 'stairDown'
-          : 'floor';
-
-    if (cell.terrain === 'floor') {
-      this.ctx.fillStyle = '#000000';
-      this.ctx.fillRect(drawX, drawY, TILE_SIZE * this.scale, TILE_SIZE * this.scale);
+    if (cell.terrain === 'wall') {
+      this.loader.drawAt(this.ctx, 'wall', drawX, drawY, this.scale);
+    } else if (cell.terrain === 'stair-up') {
+      this.loader.drawAt(this.ctx, 'stairUp', drawX, drawY, this.scale);
+    } else if (cell.terrain === 'stair-down') {
+      this.loader.drawAt(this.ctx, 'stairDown', drawX, drawY, this.scale);
+    } else {
+      this.loader.drawAt(this.ctx, 'floor', drawX, drawY, this.scale);
     }
-
-    this.loader.drawAt(this.ctx, tileSprite, drawX, drawY, this.scale);
 
     if (cell.door) {
       const name: AtlasKey = cell.door === 'yellow' ? 'doorYellow' : cell.door === 'blue' ? 'doorBlue' : 'doorRed';
@@ -196,6 +191,14 @@ export class Renderer {
 
     if (cell.princess) {
       this.loader.drawAt(this.ctx, 'princess', drawX, drawY, this.scale, now);
+    }
+
+    if (cell.fairy) {
+      this.loader.drawAt(this.ctx, 'fairy', drawX, drawY, this.scale, now);
+    }
+
+    if (cell.keyShop) {
+      this.loader.drawAt(this.ctx, 'keyShop', drawX, drawY, this.scale, now);
     }
 
     if (cell.item) {

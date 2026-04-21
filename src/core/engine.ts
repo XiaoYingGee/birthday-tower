@@ -2,7 +2,7 @@ import { createFloors } from '../data/floors';
 import type { Cell, FloorDefinition } from '../data/floor';
 import { InputManager, type InputAction } from '../systems/input';
 import { Joystick } from '../systems/joystick';
-import { consumeDoorKey, createPlayer, type PlayerState } from '../entities/player';
+import { applyItem, consumeDoorKey, createPlayer, type PlayerState } from '../entities/player';
 import { Renderer, type FloatingTextRenderState } from '../render/renderer';
 import { saveGame, loadGame, clearSave } from './save';
 import { TILE_SIZE, type SpriteLoader } from '../render/sprite-atlas';
@@ -13,7 +13,7 @@ import { setupModalKeyboard } from '../systems/modal-keyboard';
 import { setupTapInspect } from '../systems/tap-inspect';
 import { startMove, updateMovement, type MoveAnimation } from '../systems/movement';
 import { resolveCellArrival } from '../systems/floor-nav';
-import { createShop, createPrincess, type ShopHandle, type PrincessHandle } from '../entities/npc';
+import { createShop, createPrincess, createKeyShop, type ShopHandle, type PrincessHandle, type KeyShopHandle } from '../entities/npc';
 import { tryStartBattle, executeBattle, updateBattleAnimation, finishBattle, getBattleRenderState, type BattleAnimation } from '../systems/battle';
 
 type Direction = InputAction;
@@ -39,10 +39,14 @@ export interface GameConfig {
   rightPanel: HTMLElement;
   shopOverlay: HTMLElement;
   princessOverlay: HTMLElement;
+  keyshopOverlay: HTMLElement;
   battleConfirm: HTMLElement;
   deathOverlay: HTMLElement;
   restartBtn: HTMLElement;
   restartConfirm: HTMLElement;
+  treasureConfirm: HTMLElement;
+  fairyConfirm: HTMLElement;
+  victoryChest: HTMLElement;
   playerName: string;
   playerAge: string;
   loader: SpriteLoader;
@@ -55,19 +59,25 @@ export class GameEngine implements GameContext {
   private readonly victory: VictoryEffect;
   private readonly shop: ShopHandle;
   private readonly princess: PrincessHandle;
+  private readonly keyShop: KeyShopHandle;
   private readonly battleConfirm: HTMLElement;
   private readonly deathOverlay: HTMLElement;
   private readonly restartConfirm: HTMLElement;
   private readonly restartBtn: HTMLElement;
-  private readonly playerName: string;
+  private readonly treasureConfirm: HTMLElement;
+  private readonly fairyConfirm: HTMLElement;
+  private readonly victoryChest: HTMLElement;
+  readonly playerName: string;
   private readonly destroyModalKb: () => void;
 
   floors: FloorDefinition[] = [];
   floorIndex = 0;
   player!: PlayerState;
-  private message = '欢迎来到生日魔塔！';
+  private message = '';
   private messageTimer?: number;
   private victoryShown = false;
+  private pendingTreasureCell?: Cell;
+  private pendingFairyCell?: Cell;
   private pendingDirection?: Direction;
   private pendingBattle?: { cell: Cell; x: number; y: number; direction: Direction };
   private moveAnimation?: MoveAnimation;
@@ -89,17 +99,25 @@ export class GameEngine implements GameContext {
     this.deathOverlay = config.deathOverlay;
     this.restartBtn = config.restartBtn;
     this.restartConfirm = config.restartConfirm;
+    this.treasureConfirm = config.treasureConfirm;
+    this.fairyConfirm = config.fairyConfirm;
+    this.victoryChest = config.victoryChest;
     this.playerName = config.playerName;
 
     this.shop = createShop(config.shopOverlay, this);
     this.princess = createPrincess(config.princessOverlay, this);
+    this.keyShop = createKeyShop(config.keyshopOverlay, this);
     this.setupBattleConfirm();
     this.setupDeathOverlay();
     this.setupRestartBtn();
+    this.setupTreasureConfirm();
+    this.setupFairyConfirm();
+    this.setupVictoryChest();
     setupTapInspect(config.canvas, this.renderer, this);
     this.destroyModalKb = setupModalKeyboard([
-      config.shopOverlay, config.princessOverlay, config.battleConfirm,
-      config.deathOverlay, config.restartConfirm,
+      config.shopOverlay, config.princessOverlay, config.keyshopOverlay,
+      config.battleConfirm, config.deathOverlay, config.restartConfirm,
+      config.treasureConfirm, config.fairyConfirm,
     ]);
 
     this.initGame();
@@ -160,6 +178,52 @@ export class GameEngine implements GameContext {
     });
   }
 
+  private setupTreasureConfirm(): void {
+    this.treasureConfirm.querySelector('.treasure-yes')!.addEventListener('click', () => {
+      if (!this.pendingTreasureCell) return;
+      const cell = this.pendingTreasureCell;
+      this.pendingTreasureCell = undefined;
+      this.treasureConfirm.classList.remove('visible');
+      const item = cell.item!;
+      cell.item = undefined;
+      this.showMessage(applyItem(this.player, item));
+      this.save();
+    });
+    this.treasureConfirm.querySelector('.treasure-no')!.addEventListener('click', () => {
+      this.pendingTreasureCell = undefined;
+      this.treasureConfirm.classList.remove('visible');
+    });
+  }
+
+  private setupFairyConfirm(): void {
+    this.fairyConfirm.querySelector('.fairy-yes')!.addEventListener('click', () => {
+      if (!this.pendingFairyCell) return;
+      const cell = this.pendingFairyCell;
+      this.pendingFairyCell = undefined;
+      this.fairyConfirm.classList.remove('visible');
+      const hpGain = Math.ceil(this.player.hp * 0.5);
+      const atkGain = Math.ceil(this.player.atk * 0.5);
+      const defGain = Math.ceil(this.player.def * 0.5);
+      this.player.hp += hpGain;
+      this.player.atk += atkGain;
+      this.player.def += defGain;
+      cell.fairy = undefined;
+      this.showMessage(`仙子的祝福：HP+${hpGain} 攻+${atkGain} 防+${defGain}`);
+      this.save();
+    });
+    this.fairyConfirm.querySelector('.fairy-no')!.addEventListener('click', () => {
+      this.pendingFairyCell = undefined;
+      this.fairyConfirm.classList.remove('visible');
+    });
+  }
+
+  private setupVictoryChest(): void {
+    this.victoryChest.addEventListener('click', () => {
+      this.victoryChest.classList.remove('visible');
+      this.victory.show();
+    });
+  }
+
   // --- Game State ---
 
   private reset(): void {
@@ -176,10 +240,16 @@ export class GameEngine implements GameContext {
     this.victoryShown = false;
     this.shop.close();
     this.princess.close();
+    this.keyShop.close();
     this.battleConfirm.classList.remove('visible');
     this.deathOverlay.classList.remove('visible');
+    this.treasureConfirm.classList.remove('visible');
+    this.fairyConfirm.classList.remove('visible');
+    this.victoryChest.classList.remove('visible');
     this.pendingDirection = undefined;
     this.pendingBattle = undefined;
+    this.pendingTreasureCell = undefined;
+    this.pendingFairyCell = undefined;
     this.moveAnimation = undefined;
     this.battleAnimation = undefined;
     this.floatingTexts = [];
@@ -192,14 +262,12 @@ export class GameEngine implements GameContext {
       this.floorIndex = saved.floorIndex;
       this.message = '';
     } else {
-      this.message = '欢迎来到生日魔塔！';
     }
   }
 
   private newGame(): void {
     clearSave();
     this.reset();
-    this.message = '欢迎来到生日魔塔！';
   }
 
   save(): void {
@@ -222,8 +290,13 @@ export class GameEngine implements GameContext {
       if (done) {
         this.moveAnimation = undefined;
         const cell = this.currentFloor.grid[this.player.y][this.player.x];
-        resolveCellArrival(this, cell);
-        this.tryConsumePendingDirection();
+        if (cell.item === 'treasure') {
+          this.pendingTreasureCell = cell;
+          this.treasureConfirm.classList.add('visible');
+        } else {
+          resolveCellArrival(this, cell);
+          this.tryConsumePendingDirection();
+        }
       }
     }
 
@@ -235,7 +308,9 @@ export class GameEngine implements GameContext {
         finishBattle(this, battle, {
           onVictory: () => {
             this.victoryShown = true;
-            window.setTimeout(() => this.victory.show(), 250);
+            window.setTimeout(() => {
+              this.victoryChest.classList.add('visible');
+            }, 500);
           },
           onDeath: (name) => {
             const body = this.deathOverlay.querySelector('.death-body')!;
@@ -270,7 +345,7 @@ export class GameEngine implements GameContext {
   // --- Input ---
 
   private handleAction(action: InputAction): void {
-    if (this.victoryShown || this.shop.isOpen() || this.princess.isOpen() || this.pendingBattle || this.restartConfirm.classList.contains('visible')) {
+    if (this.victoryShown || this.shop.isOpen() || this.princess.isOpen() || this.keyShop.isOpen() || this.pendingBattle || this.pendingTreasureCell || this.pendingFairyCell || this.restartConfirm.classList.contains('visible')) {
       return;
     }
     if (this.player.isMoving) {
@@ -314,6 +389,17 @@ export class GameEngine implements GameContext {
 
     if (cell.merchant) { this.shop.open(); return; }
     if (cell.princess) { this.princess.open(cell); return; }
+    if (cell.fairy) {
+      this.pendingFairyCell = cell;
+      const hpGain = Math.ceil(this.player.hp * 0.5);
+      const atkGain = Math.ceil(this.player.atk * 0.5);
+      const defGain = Math.ceil(this.player.def * 0.5);
+      const body = this.fairyConfirm.querySelector('.fairy-body')!;
+      body.textContent = `HP+${hpGain} 攻+${atkGain} 防+${defGain}`;
+      this.fairyConfirm.classList.add('visible');
+      return;
+    }
+    if (cell.keyShop) { this.keyShop.open(); return; }
 
     this.moveAnimation = startMove(this.player, nextX, nextY, performance.now());
   }

@@ -6,6 +6,7 @@ export interface GameContext {
   floors: FloorDefinition[];
   floorIndex: number;
   readonly currentFloor: FloorDefinition;
+  readonly playerName: string;
   showMessage(text: string): void;
   addFloatingText(text: string, x: number, y: number, color: string, start: number, duration: number): void;
   save(): void;

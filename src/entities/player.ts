@@ -83,10 +83,9 @@ export function applyItem(player: PlayerState, item: ItemType): string {
       player.def += items.blueGem.def;
       return `蓝宝石 防+${items.blueGem.def}`;
     case 'treasure':
-      player.hp *= items.treasureMultiplier;
       player.atk *= items.treasureMultiplier;
       player.def *= items.treasureMultiplier;
-      return `★ 神秘宝物！HP/攻/防 全部×${items.treasureMultiplier}！`;
+      return `★ 神秘宝物！攻/防 全部×${items.treasureMultiplier}！`;
   }
 }
 

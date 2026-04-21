@@ -220,4 +220,6 @@ export function createDebugPanel(engine: GameEngine): void {
       }
     }
   }, 200);
+
+  panel.querySelectorAll('button').forEach((btn) => { btn.tabIndex = -1; });
 }

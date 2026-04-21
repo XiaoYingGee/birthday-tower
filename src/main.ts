@@ -1,8 +1,8 @@
 import './styles.css';
 
-import { GameEngine } from './game/engine';
-import { SpriteLoader } from './game/sprite-atlas';
-import { createDebugPanel } from './game/debug';
+import { GameEngine } from './core/engine';
+import { SpriteLoader } from './render/sprite-atlas';
+import { createDebugPanel } from './debug/debug';
 
 function blockMobileGestures(): void {
   const blocker = (event: Event) => event.preventDefault();
@@ -23,17 +23,32 @@ function requireEl<T extends HTMLElement>(id: string): T {
 
 const canvas = requireEl<HTMLCanvasElement>('game-canvas');
 const controls = requireEl<HTMLElement>('touch-controls');
-const joystickBase = requireEl<HTMLElement>('joystick-base');
-const joystickKnob = requireEl<HTMLElement>('joystick-knob');
+const dpad = requireEl<HTMLElement>('dpad');
 const shell = requireEl<HTMLElement>('game-shell');
 const messageEl = requireEl<HTMLElement>('message');
 const bannerEl = requireEl<HTMLElement>('banner');
 const rightPanel = requireEl<HTMLElement>('right-panel');
 const shopOverlay = requireEl<HTMLElement>('shop-overlay');
+const princessOverlay = requireEl<HTMLElement>('princess-overlay');
 const battleConfirm = requireEl<HTMLElement>('battle-confirm');
 const deathOverlay = requireEl<HTMLElement>('death-overlay');
 const restartBtn = requireEl<HTMLElement>('restart-btn');
 const restartConfirm = requireEl<HTMLElement>('restart-confirm');
+
+const dpadSideBtn = document.getElementById('dpad-side-btn');
+if (dpadSideBtn) {
+  let dpadOnRight = true;
+  dpadSideBtn.addEventListener('click', () => {
+    dpadOnRight = !dpadOnRight;
+    if (dpadOnRight) {
+      dpad.style.right = '20px';
+      dpad.style.left = 'auto';
+    } else {
+      dpad.style.right = 'auto';
+      dpad.style.left = '20px';
+    }
+  });
+}
 
 const playerName = import.meta.env.VITE_PLAYER_NAME || '小朋友';
 const playerAge = import.meta.env.VITE_PLAYER_AGE || '6';
@@ -51,13 +66,14 @@ async function bootstrap(): Promise<void> {
   const engine = new GameEngine({
     canvas,
     controls,
-    joystickBase,
-    joystickKnob,
+    joystickBase: dpad,
+    joystickKnob: dpad,
     shell,
     messageEl,
     bannerEl,
     rightPanel,
     shopOverlay,
+    princessOverlay,
     battleConfirm,
     deathOverlay,
     restartBtn,

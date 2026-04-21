@@ -1,5 +1,5 @@
-import type { MonsterId } from './floor';
-import { CONFIG, type MonsterConfig } from './config';
+import type { MonsterId } from '../data/floor';
+import { CONFIG, type MonsterConfig } from '../data/config';
 
 export type MonsterDefinition = MonsterConfig & { id: MonsterId };
 

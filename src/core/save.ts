@@ -1,6 +1,6 @@
-import type { Cell, FloorDefinition } from './floor';
-import type { PlayerState } from './player';
-import { TILE_SIZE } from './sprite-atlas';
+import type { Cell, FloorDefinition } from '../data/floor';
+import type { PlayerState } from '../entities/player';
+import { TILE_SIZE } from '../render/sprite-atlas';
 
 const SAVE_KEY = 'birthday-tower-save';
 

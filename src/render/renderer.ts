@@ -1,5 +1,5 @@
-import type { Cell, FloorDefinition, MonsterId } from './floor';
-import type { PlayerState } from './player';
+import type { Cell, FloorDefinition, MonsterId } from '../data/floor';
+import type { PlayerState } from '../entities/player';
 import { TILE_SIZE, type AtlasKey, type SpriteLoader } from './sprite-atlas';
 
 export interface FloatingTextRenderState {
@@ -22,23 +22,6 @@ export interface BattleRenderState {
   monsterFlashAlpha: number;
 }
 
-export interface SpriteRef {
-  src: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  srcWidth: number;
-}
-
-export interface MonsterInfo {
-  name: string;
-  hp: number;
-  atk: number;
-  def: number;
-  sprite: SpriteRef;
-}
-
 export interface RenderState {
   now: number;
   floorNumber: number;
@@ -49,7 +32,6 @@ export interface RenderState {
   message: string;
   floatingTexts: FloatingTextRenderState[];
   battle?: BattleRenderState;
-  monsters: MonsterInfo[];
 }
 
 const GRID_SIZE = 13;
@@ -60,7 +42,6 @@ export class Renderer {
   private readonly messageEl: HTMLElement;
   private readonly bannerEl: HTMLElement;
   private readonly rightPanel: HTMLElement;
-  private readonly restartBtn: HTMLElement;
   private readonly loader: SpriteLoader;
   private scale = 2;
 
@@ -69,14 +50,12 @@ export class Renderer {
     messageEl: HTMLElement,
     bannerEl: HTMLElement,
     rightPanel: HTMLElement,
-    restartBtn: HTMLElement,
     loader: SpriteLoader,
   ) {
     this.canvas = canvas;
     this.messageEl = messageEl;
     this.bannerEl = bannerEl;
     this.rightPanel = rightPanel;
-    this.restartBtn = restartBtn;
     this.loader = loader;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -87,6 +66,14 @@ export class Renderer {
 
     this.resize();
     window.addEventListener('resize', this.resize);
+  }
+
+  screenToGrid(clientX: number, clientY: number): { x: number; y: number } | null {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = Math.floor((clientX - rect.left) / (TILE_SIZE * this.scale));
+    const y = Math.floor((clientY - rect.top) / (TILE_SIZE * this.scale));
+    if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return null;
+    return { x, y };
   }
 
   destroy(): void {
@@ -107,7 +94,7 @@ export class Renderer {
         const cell = state.floor.grid[y][x];
         const drawX = x * tileSize;
         const drawY = y * tileSize;
-        this.drawCell(state, cell, x, y, drawX, drawY);
+        this.drawCell(state, cell, x, y, drawX, drawY, state.now);
       }
     }
 
@@ -141,14 +128,6 @@ export class Renderer {
       `<div class="stat">${spriteIcon('/sprites/items.png', 1)}<span class="label">蓝钥匙</span><span class="val">${p.blueKeys}</span></div>` +
       `<div class="stat">${spriteIcon('/sprites/items.png', 2)}<span class="label">红钥匙</span><span class="val">${p.redKeys}</span></div>`;
 
-    if (state.monsters.length > 0) {
-      html += '<hr class="panel-divider">';
-      html += '<div class="section-title">怪物（HP/攻/防）</div>';
-      html += '<hr class="panel-divider">';
-      for (const m of state.monsters) {
-        html += `<div class="stat">${spriteRefIcon(m.sprite)}<span class="label">${m.name}</span><span class="val">${m.hp}/${m.atk}/${m.def}</span></div>`;
-      }
-    }
     this.rightPanel.innerHTML = html;
 
     this.messageEl.textContent = state.message;
@@ -182,16 +161,15 @@ export class Renderer {
       const rect = this.canvas.getBoundingClientRect();
       this.bannerEl.style.left = `${rect.left}px`;
       this.bannerEl.style.top = `${rect.top - bannerH}px`;
-      this.rightPanel.style.left = `${rect.right + 8}px`;
-      this.rightPanel.style.top = `${rect.top}px`;
-      const panelPadding = 10 * 2 + 2;
-      this.restartBtn.style.width = `${this.rightPanel.offsetWidth - panelPadding}px`;
-      this.restartBtn.style.left = `${rect.right + 8}px`;
-      this.restartBtn.style.top = `${rect.bottom - this.restartBtn.offsetHeight}px`;
+      const rightWrap = this.rightPanel.parentElement;
+      if (rightWrap) {
+        rightWrap.style.left = `${rect.right + 8}px`;
+        rightWrap.style.top = `${rect.top}px`;
+      }
     });
   };
 
-  private drawCell(state: RenderState, cell: Cell, gridX: number, gridY: number, drawX: number, drawY: number): void {
+  private drawCell(state: RenderState, cell: Cell, gridX: number, gridY: number, drawX: number, drawY: number, now: number): void {
     const tileSprite: AtlasKey = cell.terrain === 'wall'
       ? 'wall'
       : cell.terrain === 'stair-up'
@@ -213,7 +191,11 @@ export class Renderer {
     }
 
     if (cell.merchant) {
-      this.loader.drawAt(this.ctx, 'merchant', drawX, drawY, this.scale);
+      this.loader.drawAt(this.ctx, 'merchant', drawX, drawY, this.scale, now);
+    }
+
+    if (cell.princess) {
+      this.loader.drawAt(this.ctx, 'princess', drawX, drawY, this.scale, now);
     }
 
     if (cell.item) {
@@ -242,7 +224,7 @@ export class Renderer {
     const monsterX = drawX + (isBattleTarget ? battle.monsterShakeX * this.scale : 0);
     const monsterY = drawY + (isBattleTarget ? battle.monsterShakeY * this.scale : 0);
 
-    this.loader.drawAt(this.ctx, cell.monster, monsterX, monsterY, this.scale);
+    this.loader.drawAt(this.ctx, cell.monster, monsterX, monsterY, this.scale, now);
 
     if (!isBattleTarget || !battle.monsterFlashAlpha) {
       return;
@@ -282,12 +264,4 @@ function spriteIcon(src: string, index: number): string {
   const y = index * 32;
   const posY = y * (24 / 32);
   return `<span class="sprite-icon" style="background-image:url(${src});background-position:0 -${posY}px"></span>`;
-}
-
-function spriteRefIcon(ref: SpriteRef): string {
-  const scale = 24 / ref.w;
-  const bgW = ref.srcWidth * scale;
-  const posX = ref.x * scale;
-  const posY = ref.y * scale;
-  return `<span class="sprite-icon" style="background-image:url(${ref.src});background-size:${bgW}px auto;background-position:-${posX}px -${posY}px"></span>`;
 }

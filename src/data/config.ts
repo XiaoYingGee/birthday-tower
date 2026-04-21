@@ -43,8 +43,11 @@ export const CONFIG = {
     zombie: { name: '僵尸', hp: 25, atk: 14, def: 3, gold: 5, exp: 10 },
     skeleton: { name: '骷髅', hp: 50, atk: 19, def: 3, gold: 8, exp: 12 },
     spider: { name: '蝙蝠', hp: 75, atk: 31, def: 10, gold: 10, exp: 14 },
-    creeper: { name: '棕巫师', hp: 100, atk: 28, def: 12, gold: 20, exp: 35 },
-    enderman: { name: '暗黑骑士', hp: 150, atk: 36, def: 16, gold: 30, exp: 50 },
+    creeper: { name: '棕巫师', hp: 100, atk: 40, def: 20, gold: 15, exp: 16 },
+    skeletonCaptain: { name: '骷髅队长', hp: 350, atk: 80, def: 40, gold: 30, exp: 30 },
+    swordsman: { name: '剑士', hp: 450, atk: 110, def: 65, gold: 40, exp: 40 },
+    redWizard: { name: '红巫师', hp: 600, atk: 150, def: 90, gold: 50, exp: 50 },
+    enderman: { name: '暗黑骑士', hp: 200, atk: 55, def: 30, gold: 20, exp: 20 },
     wither: { name: '龙王', hp: 1500, atk: 120, def: 55, gold: 0, exp: 0 },
   } as Record<MonsterId, MonsterConfig>,
   battle: {

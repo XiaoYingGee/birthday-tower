@@ -7,21 +7,30 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#20211f" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>生日魔塔</title>
   </head>
   <body>
     <div id="app">
       <div id="game-shell">
         <div id="banner"></div>
-        <button id="restart-btn">重新开始</button>
         <div id="game-area">
           <canvas id="game-canvas" aria-label="生日魔塔游戏画布"></canvas>
         </div>
-        <div id="right-panel" class="side-panel"></div>
+        <div id="right-wrap">
+          <div id="right-panel" class="side-panel"></div>
+        </div>
+        <button id="restart-btn" title="重新开始">↺</button>
+        <button id="dpad-side-btn" title="切换方向键位置">⇄</button>
         <div id="touch-controls" aria-hidden="true">
-          <div id="joystick-base">
-            <div id="joystick-knob"></div>
+          <div id="dpad">
+            <button class="dpad-btn dpad-up" data-dir="up">▲</button>
+            <button class="dpad-btn dpad-left" data-dir="left">◀</button>
+            <button class="dpad-btn dpad-right" data-dir="right">▶</button>
+            <button class="dpad-btn dpad-down" data-dir="down">▼</button>
           </div>
         </div>
         <div id="message" role="status" aria-live="polite"></div>
@@ -62,6 +71,15 @@
               <button class="confirm-btn confirm-yes restart-yes">确定</button>
               <button class="confirm-btn confirm-no restart-no">取消</button>
             </div>
+          </div>
+        </div>
+        <div id="princess-overlay">
+          <div class="shop-panel">
+            <div class="shop-title">公主的祝福</div>
+            <div class="shop-gold">选择一项增益（仅一次）</div>
+            <button class="shop-btn" data-princess="hp">HP +500</button>
+            <button class="shop-btn" data-princess="atk">攻击 +50</button>
+            <button class="shop-btn" data-princess="def">防御 +50</button>
           </div>
         </div>
       </div>

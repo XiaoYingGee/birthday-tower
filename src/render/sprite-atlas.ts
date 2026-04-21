@@ -36,10 +36,14 @@ type AtlasMap = {
   blueGem: AtlasEntry;
   treasure: AtlasEntry;
   merchant: AtlasEntry;
+  princess: AtlasEntry;
   zombie: AtlasEntry;
   skeleton: AtlasEntry;
   spider: AtlasEntry;
   creeper: AtlasEntry;
+  skeletonCaptain: AtlasEntry;
+  swordsman: AtlasEntry;
+  redWizard: AtlasEntry;
   enderman: AtlasEntry;
   wither: AtlasEntry;
 };
@@ -61,11 +65,15 @@ export const ATLAS: AtlasMap = {
   redGem:     { src: '/sprites/items.png', x: 0, y: 16 * 32, w: 32, h: 32 },
   blueGem:    { src: '/sprites/items.png', x: 0, y: 17 * 32, w: 32, h: 32 },
   treasure:   { src: '/sprites/items.png', x: 0, y: 11 * 32, w: 32, h: 32 },
-  merchant:   { src: '/sprites/enemys.png', x: 0, y: 46 * 32, w: 32, h: 32 },
+  merchant:   { src: '/sprites/npcs.png', x: 0, y: 1 * 32, w: 32, h: 32 },
+  princess:   { src: '/sprites/npcs.png', x: 0, y: 11 * 32, w: 32, h: 32 },
   zombie:    { src: '/sprites/enemys.png', x: 0, y: 12 * 32, w: 32, h: 32 },
   skeleton:  { src: '/sprites/enemys.png', x: 0, y: 8  * 32, w: 32, h: 32 },
   spider:    { src: '/sprites/enemys.png', x: 0, y: 4  * 32, w: 32, h: 32 },
   creeper:   { src: '/sprites/enemys.png', x: 0, y: 18 * 32, w: 32, h: 32 },
+  skeletonCaptain: { src: '/sprites/enemys.png', x: 0, y: 10 * 32, w: 32, h: 32 },
+  swordsman: { src: '/sprites/enemys.png', x: 0, y: 23 * 32, w: 32, h: 32 },
+  redWizard: { src: '/sprites/enemys.png', x: 0, y: 19 * 32, w: 32, h: 32 },
   enderman:  { src: '/sprites/enemys.png', x: 0, y: 27 * 32, w: 32, h: 32 },
   wither:    { src: '/sprites/enemys.png', x: 0, y: 56 * 32, w: 32, h: 32 },
 };
@@ -81,6 +89,8 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     image.src = src;
   });
 }
+
+const ANIM_INTERVAL = 500;
 
 export class SpriteLoader {
   private readonly images = new Map<string, HTMLImageElement>();
@@ -105,6 +115,7 @@ export class SpriteLoader {
     dx: number,
     dy: number,
     scale: number,
+    now?: number,
   ): void {
     const entry = ATLAS[atlasKey];
     if (!entry) {
@@ -117,7 +128,13 @@ export class SpriteLoader {
       return;
     }
 
-    ctx.drawImage(image, entry.x, entry.y, entry.w, entry.h, dx, dy, entry.w * scale, entry.h * scale);
+    let sx = entry.x;
+    if (now !== undefined && (entry.src.includes('enemys') || entry.src.includes('npcs'))) {
+      const frame = Math.floor(now / ANIM_INTERVAL) % 2;
+      sx = frame * 32;
+    }
+
+    ctx.drawImage(image, sx, entry.y, entry.w, entry.h, dx, dy, entry.w * scale, entry.h * scale);
   }
 
   drawHero(

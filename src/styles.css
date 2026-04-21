@@ -52,23 +52,29 @@ canvas {
   white-space: nowrap;
 }
 
-#restart-btn {
-  position: absolute;
-  width: 140px;
-  padding: 8px 0;
+#restart-btn, #dpad-side-btn {
+  position: fixed;
+  top: 10px;
+  width: 32px;
+  height: 32px;
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
+  border-radius: 50%;
   background: rgba(255,255,255,0.08);
-  color: #ccc;
-  font: inherit;
-  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
-  z-index: 5;
-  text-align: center;
-  box-sizing: content-box;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
-#restart-btn:hover {
+#restart-btn { right: 10px; }
+#dpad-side-btn { right: 48px; }
+
+#restart-btn:hover, #dpad-side-btn:hover {
   background: rgba(255,255,255,0.15);
   color: #fff;
 }
@@ -79,9 +85,13 @@ canvas {
   justify-content: center;
 }
 
-.side-panel {
+#right-wrap {
   position: absolute;
-  width: 140px;
+  z-index: 5;
+}
+
+.side-panel {
+  width: 160px;
   padding: 8px 10px;
   background: rgba(255,255,255,0.06);
   border-radius: 8px;
@@ -224,28 +234,43 @@ canvas {
   }
 }
 
-#joystick-base {
+#dpad {
   position: fixed;
-  bottom: 30px;
-  left: 30px;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  bottom: 20px;
+  right: 20px;
+  left: auto;
+  width: 150px;
+  height: 150px;
   touch-action: none;
 }
 
-#joystick-knob {
-  display: none;
+.dpad-btn {
   position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
+
+.dpad-btn:active, .dpad-btn.pressed {
+  background: rgba(255,208,92,0.35);
+  border-color: rgba(255,208,92,0.6);
+  color: #ffd166;
+}
+
+.dpad-up    { left: 50px; top: 0; }
+.dpad-down  { left: 50px; bottom: 0; }
+.dpad-left  { left: 0; top: 50px; }
+.dpad-right { right: 0; top: 50px; }
 
 /* Shop overlay */
 #shop-overlay {
@@ -259,6 +284,20 @@ canvas {
 }
 
 #shop-overlay.visible {
+  display: flex;
+}
+
+#princess-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 20;
+}
+
+#princess-overlay.visible {
   display: flex;
 }
 
@@ -302,7 +341,7 @@ canvas {
   cursor: not-allowed;
 }
 
-.shop-btn:not(:disabled):hover {
+.shop-btn:not(:disabled):hover, .shop-btn.kb-focus {
   background: rgba(255, 208, 92, 0.5);
 }
 
@@ -385,13 +424,17 @@ canvas {
   font-weight: 700;
 }
 
-.confirm-yes:hover {
+.confirm-yes:hover, .confirm-yes.kb-focus {
   background: rgba(255, 208, 92, 0.9);
 }
 
 .confirm-no {
   background: rgba(255,255,255,0.15);
   color: #ccc;
+}
+
+.confirm-no:hover, .confirm-no.kb-focus {
+  background: rgba(255,255,255,0.3);
 }
 
 .confirm-no:hover {
@@ -473,7 +516,7 @@ canvas {
 }
 
 @media (max-width: 700px) {
-  .side-panel {
+  #right-wrap {
     display: none;
   }
 
@@ -577,6 +620,17 @@ canvas {
 
 .debug-btn:hover {
   background: rgba(255,208,92,0.3);
+  color: #fff;
+}
+
+.debug-preset-on {
+  background: rgba(255,92,92,0.4);
+  border-color: #ff5f56;
+  color: #ff5f56;
+}
+
+.debug-preset-on:hover {
+  background: rgba(255,92,92,0.6);
   color: #fff;
 }
 

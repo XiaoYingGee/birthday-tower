@@ -1,6 +1,6 @@
 export type DoorColor = 'yellow' | 'blue' | 'red';
 export type ItemType = 'redPotion' | 'bluePotion' | 'redGem' | 'blueGem' | 'treasure' | 'yellowKey' | 'blueKey' | 'redKey';
-export type MonsterId = 'zombie' | 'skeleton' | 'spider' | 'creeper' | 'enderman' | 'wither';
+export type MonsterId = 'zombie' | 'skeleton' | 'spider' | 'creeper' | 'skeletonCaptain' | 'swordsman' | 'redWizard' | 'enderman' | 'wither';
 export type TerrainType = 'floor' | 'wall' | 'stair-up' | 'stair-down';
 
 export interface Cell {
@@ -9,6 +9,7 @@ export interface Cell {
   door?: DoorColor;
   monster?: MonsterId;
   merchant?: boolean;
+  princess?: boolean;
 }
 
 export interface FloorDefinition {
@@ -16,7 +17,8 @@ export interface FloorDefinition {
   name: string;
   grid: Cell[][];
   start: { x: number; y: number };
-  comeDown?: { x: number; y: number };
+  starts: { x: number; y: number }[];
+  comeDowns: { x: number; y: number }[];
 }
 
 const CELL_LOOKUP: Record<string, Cell> = {
@@ -36,10 +38,14 @@ const CELL_LOOKUP: Record<string, Cell> = {
   d: { terrain: 'floor', item: 'blueGem' },
   T: { terrain: 'floor', item: 'treasure' },
   S: { terrain: 'floor', merchant: true },
+  P: { terrain: 'floor', princess: true },
   Z: { terrain: 'floor', monster: 'zombie' },
   K: { terrain: 'floor', monster: 'skeleton' },
   F: { terrain: 'floor', monster: 'spider' },
   W: { terrain: 'floor', monster: 'creeper' },
+  C: { terrain: 'floor', monster: 'skeletonCaptain' },
+  J: { terrain: 'floor', monster: 'swordsman' },
+  M: { terrain: 'floor', monster: 'redWizard' },
   E: { terrain: 'floor', monster: 'enderman' },
   X: { terrain: 'floor', monster: 'wither' },
 };
@@ -48,7 +54,8 @@ export function cloneFloor(floor: FloorDefinition): FloorDefinition {
   return {
     ...floor,
     start: { ...floor.start },
-    comeDown: floor.comeDown ? { ...floor.comeDown } : undefined,
+    starts: floor.starts.map((p) => ({ ...p })),
+    comeDowns: floor.comeDowns.map((p) => ({ ...p })),
     grid: floor.grid.map((row) => row.map((cell) => ({ ...cell }))),
   };
 }
@@ -59,16 +66,18 @@ export function parseFloor(id: number, name: string, rows: string[]): FloorDefin
   }
 
   let start = { x: 1, y: 1 };
-  let comeDown: { x: number; y: number } | undefined;
+  const starts: { x: number; y: number }[] = [];
+  const comeDowns: { x: number; y: number }[] = [];
   const grid: Cell[][] = rows.map((row, y) =>
     row.split('').map((token, x) => {
       if (token === '@') {
         start = { x, y };
+        starts.push({ x, y });
         return { terrain: 'floor' as const };
       }
 
       if (token === '!') {
-        comeDown = { x, y };
+        comeDowns.push({ x, y });
         return { terrain: 'floor' as const };
       }
 
@@ -81,5 +90,5 @@ export function parseFloor(id: number, name: string, rows: string[]): FloorDefin
     }),
   );
 
-  return { id, name, grid, start, comeDown };
+  return { id, name, grid, start, starts, comeDowns };
 }

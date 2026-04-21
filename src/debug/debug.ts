@@ -1,5 +1,6 @@
-import { CONFIG } from './config';
-import type { GameEngine } from './engine';
+import { CONFIG } from '../data/config';
+import { FLOOR_PRESETS } from './debug-presets';
+import type { GameEngine } from '../core/engine';
 
 function makeSection(title: string, collapsed = false): { wrapper: HTMLElement; content: HTMLElement } {
   const wrapper = document.createElement('div');
@@ -68,11 +69,37 @@ export function createDebugPanel(engine: GameEngine): void {
   const floors = makeSection('楼层跳转');
   const floorsRow = document.createElement('div');
   floorsRow.className = 'debug-floors';
+
+  let debugPreset = false;
+  const presetBtn = document.createElement('button');
+  presetBtn.textContent = 'debug';
+  presetBtn.className = 'debug-btn debug-preset-off';
+  presetBtn.addEventListener('click', () => {
+    debugPreset = !debugPreset;
+    presetBtn.className = debugPreset ? 'debug-btn debug-preset-on' : 'debug-btn debug-preset-off';
+  });
+  floorsRow.appendChild(presetBtn);
+
+  const floorButtons: { label: string; index: number; startPos?: { x: number; y: number } }[] = [];
   for (let i = 0; i < 6; i++) {
+    if (i === 3) {
+      floorButtons.push({ label: 'F4L', index: 3, startPos: { x: 2, y: 1 } });
+      floorButtons.push({ label: 'F4R', index: 3, startPos: { x: 10, y: 1 } });
+    } else {
+      floorButtons.push({ label: `F${i + 1}`, index: i });
+    }
+  }
+  for (const fb of floorButtons) {
     const btn = document.createElement('button');
-    btn.textContent = `F${i + 1}`;
+    btn.textContent = fb.label;
     btn.className = 'debug-btn';
-    btn.addEventListener('click', () => engine.debugGoToFloor(i));
+    btn.addEventListener('click', () => {
+      if (debugPreset) {
+        engine.debugResetFloor(fb.index, FLOOR_PRESETS[fb.index], fb.startPos);
+      } else {
+        engine.debugGoToFloor(fb.index);
+      }
+    });
     floorsRow.appendChild(btn);
   }
   floors.content.appendChild(floorsRow);
@@ -90,7 +117,7 @@ export function createDebugPanel(engine: GameEngine): void {
     { key: 'blueKeys', label: '蓝钥匙' },
     { key: 'redKeys', label: '红钥匙' },
   ];
-  const inputKeys = new Set(['hp', 'atk', 'def', 'gold']);
+  const inputKeys = new Set(['hp', 'atk', 'def', 'gold', 'exp']);
   const playerSyncEls: { key: string; el: HTMLElement; isInput: boolean }[] = [];
   for (const f of playerFields) {
     if (inputKeys.has(f.key)) {

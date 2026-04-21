@@ -1,5 +1,5 @@
-import type { DoorColor, ItemType } from './floor';
-import { CONFIG } from './config';
+import type { DoorColor, ItemType } from '../data/floor';
+import { CONFIG } from '../data/config';
 
 export interface PlayerState {
   x: number;

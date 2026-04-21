@@ -91,8 +91,8 @@ const ITEM_NAMES: Record<ItemType, string> = {
 const ITEM_DESCS: Record<ItemType, string> = {
   redPotion: 'HP+50',
   bluePotion: 'HP+150',
-  redGem: '攻+10',
-  blueGem: '防+10',
+  redGem: '攻+5',
+  blueGem: '防+5',
   treasure: '攻防血翻倍 ⚠️别贪心！',
   yellowKey: '开黄门',
   blueKey: '开蓝门',

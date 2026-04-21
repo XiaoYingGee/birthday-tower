@@ -1,13 +1,25 @@
 import { createFloors } from './floors';
 import type { Cell, FloorDefinition, ItemType, MonsterId } from './floor';
 import { InputManager, type InputAction } from './input';
+import { Joystick } from './joystick';
 import { estimateBattle, MONSTERS, type BattleEstimate } from './monster';
 import { applyItem, checkLevelUp, consumeDoorKey, createPlayer, type PlayerState } from './player';
-import { Renderer, type BattleRenderState, type FloatingTextRenderState, type MonsterInfo, type ItemInfo } from './renderer';
-import { TILE_SIZE, type SpriteLoader } from './sprite-atlas';
+import { Renderer, type BattleRenderState, type FloatingTextRenderState, type MonsterInfo, type ItemInfo, type SpriteRef } from './renderer';
+import { TILE_SIZE, ATLAS, type AtlasKey, type SpriteLoader } from './sprite-atlas';
 import { VictoryEffect } from './victory';
 
 type Direction = InputAction;
+
+const ITEM_ATLAS_MAP: Record<ItemType, AtlasKey> = {
+  redPotion: 'redPotion',
+  bluePotion: 'bluePotion',
+  redGem: 'redGem',
+  blueGem: 'blueGem',
+  treasure: 'treasure',
+  yellowKey: 'keyYellow',
+  blueKey: 'keyBlue',
+  redKey: 'keyRed',
+};
 
 interface MoveAnimation {
   fromX: number;
@@ -47,6 +59,8 @@ interface BattleAnimation {
 export interface GameConfig {
   canvas: HTMLCanvasElement;
   controls: HTMLElement;
+  joystickBase: HTMLElement;
+  joystickKnob: HTMLElement;
   shell: HTMLElement;
   messageEl: HTMLElement;
   bannerEl: HTMLElement;
@@ -79,7 +93,7 @@ const ITEM_DESCS: Record<ItemType, string> = {
   bluePotion: 'HP+150',
   redGem: '攻+10',
   blueGem: '防+10',
-  treasure: 'HP/攻/防 ×2',
+  treasure: '攻防血翻倍 ⚠️别贪心！',
   yellowKey: '开黄门',
   blueKey: '开蓝门',
   redKey: '开红门',
@@ -88,6 +102,7 @@ const ITEM_DESCS: Record<ItemType, string> = {
 export class GameEngine {
   private readonly renderer: Renderer;
   private readonly input: InputManager;
+  private readonly joystick: Joystick;
   private readonly victory: VictoryEffect;
   private readonly shopOverlay: HTMLElement;
   private floors: FloorDefinition[] = [];
@@ -106,7 +121,8 @@ export class GameEngine {
 
   constructor(config: GameConfig) {
     this.renderer = new Renderer(config.canvas, config.messageEl, config.bannerEl, config.leftPanel, config.rightPanel, config.loader);
-    this.input = new InputManager(config.controls, (action) => this.handleAction(action));
+    this.input = new InputManager((action) => this.handleAction(action));
+    this.joystick = new Joystick(config.joystickBase, config.joystickKnob, (action) => this.handleAction(action));
     this.victory = new VictoryEffect(config.shell, config.playerName, config.playerAge, () => this.reset());
     this.shopOverlay = config.shopOverlay;
 
@@ -119,6 +135,7 @@ export class GameEngine {
   destroy(): void {
     this.renderer.destroy();
     this.input.destroy();
+    this.joystick.destroy();
     this.victory.destroy();
     if (this.messageTimer) {
       window.clearTimeout(this.messageTimer);
@@ -253,6 +270,10 @@ export class GameEngine {
           seen.add(cell.monster);
           const m = MONSTERS[cell.monster];
           const est = estimateBattle(this.player.hp, this.player.atk, this.player.def, cell.monster);
+          const atlasEntry = ATLAS[cell.monster as keyof typeof ATLAS];
+          const sprite: SpriteRef = atlasEntry && 'x' in atlasEntry
+            ? { src: atlasEntry.src, x: atlasEntry.x, y: atlasEntry.y, w: atlasEntry.w, h: atlasEntry.h, srcWidth: atlasEntry.src.includes('enemys') ? 64 : 32 }
+            : { src: '/sprites/enemys.png', x: 0, y: 0, w: 32, h: 32, srcWidth: 64 };
           result.push({
             name: m.name,
             hp: m.hp,
@@ -260,6 +281,7 @@ export class GameEngine {
             def: m.def,
             damage: est.damageTaken,
             fatal: est.fatal,
+            sprite,
           });
         }
       }
@@ -274,7 +296,12 @@ export class GameEngine {
       for (const cell of row) {
         if (cell.item && !seen.has(cell.item)) {
           seen.add(cell.item);
-          result.push({ name: ITEM_NAMES[cell.item], desc: ITEM_DESCS[cell.item] });
+          const atlasKey = ITEM_ATLAS_MAP[cell.item];
+          const atlasEntry = ATLAS[atlasKey];
+          const sprite: SpriteRef | undefined = atlasEntry
+            ? { src: atlasEntry.src, x: atlasEntry.x, y: atlasEntry.y, w: atlasEntry.w, h: atlasEntry.h, srcWidth: 32 }
+            : undefined;
+          result.push({ name: ITEM_NAMES[cell.item], desc: ITEM_DESCS[cell.item], sprite });
         }
       }
     }

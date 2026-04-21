@@ -22,6 +22,8 @@ function requireEl<T extends HTMLElement>(id: string): T {
 
 const canvas = requireEl<HTMLCanvasElement>('game-canvas');
 const controls = requireEl<HTMLElement>('touch-controls');
+const joystickBase = requireEl<HTMLElement>('joystick-base');
+const joystickKnob = requireEl<HTMLElement>('joystick-knob');
 const shell = requireEl<HTMLElement>('game-shell');
 const messageEl = requireEl<HTMLElement>('message');
 const bannerEl = requireEl<HTMLElement>('banner');
@@ -45,6 +47,8 @@ async function bootstrap(): Promise<void> {
   const engine = new GameEngine({
     canvas,
     controls,
+    joystickBase,
+    joystickKnob,
     shell,
     messageEl,
     bannerEl,

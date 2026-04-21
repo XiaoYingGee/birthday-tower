@@ -19,14 +19,9 @@
           <canvas id="game-canvas" aria-label="生日魔塔游戏画布"></canvas>
           <div id="right-panel" class="side-panel"></div>
         </div>
-        <div id="touch-controls" aria-hidden="false">
-          <div class="control-pad">
-            <button class="control-btn spacer" tabindex="-1" aria-hidden="true"></button>
-            <button class="control-btn" data-action="up">↑</button>
-            <button class="control-btn spacer" tabindex="-1" aria-hidden="true"></button>
-            <button class="control-btn" data-action="left">←</button>
-            <button class="control-btn" data-action="down">↓</button>
-            <button class="control-btn" data-action="right">→</button>
+        <div id="touch-controls" aria-hidden="true">
+          <div id="joystick-base">
+            <div id="joystick-knob"></div>
           </div>
         </div>
         <div id="message" role="status" aria-live="polite"></div>

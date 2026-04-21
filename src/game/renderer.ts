@@ -22,6 +22,15 @@ export interface BattleRenderState {
   monsterFlashAlpha: number;
 }
 
+export interface SpriteRef {
+  src: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  srcWidth: number;
+}
+
 export interface MonsterInfo {
   name: string;
   hp: number;
@@ -29,11 +38,13 @@ export interface MonsterInfo {
   def: number;
   damage: number;
   fatal: boolean;
+  sprite: SpriteRef;
 }
 
 export interface ItemInfo {
   name: string;
   desc: string;
+  sprite?: SpriteRef;
 }
 
 export interface RenderState {
@@ -124,15 +135,15 @@ export class Renderer {
     this.bannerEl.textContent = `F${state.floorNumber} ${state.floorName}`;
 
     this.leftPanel.innerHTML =
-      `<div class="stat">HP <span class="val">${state.player.hp}</span></div>` +
-      `<div class="stat">攻 <span class="val">${state.player.atk}</span></div>` +
-      `<div class="stat">防 <span class="val">${state.player.def}</span></div>` +
-      `<div class="stat">金 <span class="val">${state.player.gold}</span></div>` +
-      `<div class="stat">经验 <span class="val">${state.player.exp}/100</span></div>` +
-      `<div class="stat">Lv <span class="val">${state.player.level}</span></div>` +
-      `<div class="stat key-yellow">🟡 <span class="val">${state.player.yellowKeys}</span></div>` +
-      `<div class="stat key-blue">🔵 <span class="val">${state.player.blueKeys}</span></div>` +
-      `<div class="stat key-red">🔴 <span class="val">${state.player.redKeys}</span></div>`;
+      `<div class="stat">${spriteIcon('/sprites/items.png', 20)} HP <span class="val">${state.player.hp}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 50)} 攻 <span class="val">${state.player.atk}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 55)} 防 <span class="val">${state.player.def}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 11)} 金 <span class="val">${state.player.gold}</span></div>` +
+      `<div class="stat"><span class="icon-text">EXP</span> 经验 <span class="val">${state.player.exp}/100</span></div>` +
+      `<div class="stat"><span class="icon-text">Lv</span> Lv <span class="val">${state.player.level}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 0)} 黄钥匙 <span class="val">${state.player.yellowKeys}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 1)} 蓝钥匙 <span class="val">${state.player.blueKeys}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 2)} 红钥匙 <span class="val">${state.player.redKeys}</span></div>`;
 
     let rightHtml = '';
     if (state.monsters.length > 0) {
@@ -140,13 +151,14 @@ export class Renderer {
       for (const m of state.monsters) {
         const dmgClass = m.fatal ? 'fatal' : 'safe';
         const dmgText = m.fatal ? '无法击败' : `-${m.damage}HP`;
-        rightHtml += `<div class="monster-entry"><span class="m-name">${m.name}</span> <span class="m-stats">${m.hp}/${m.atk}/${m.def}</span> <span class="${dmgClass}">${dmgText}</span></div>`;
+        rightHtml += `<div class="monster-entry">${spriteRefIcon(m.sprite)}<span class="m-name">${m.name}</span> <span class="m-stats">HP${m.hp}/攻${m.atk}/防${m.def}</span> <span class="${dmgClass}">${dmgText}</span></div>`;
       }
     }
     if (state.items.length > 0) {
       rightHtml += '<div class="section-title">道具</div>';
       for (const item of state.items) {
-        rightHtml += `<div class="item-entry"><span class="i-name">${item.name}</span> <span class="i-desc">${item.desc}</span></div>`;
+        const icon = item.sprite ? spriteRefIcon(item.sprite) : '';
+        rightHtml += `<div class="item-entry">${icon}<span class="i-name">${item.name}</span> <span class="i-desc">${item.desc}</span></div>`;
       }
     }
     this.rightPanel.innerHTML = rightHtml;
@@ -252,4 +264,18 @@ export class Renderer {
     this.ctx.textAlign = 'start';
     this.ctx.textBaseline = 'alphabetic';
   }
+}
+
+function spriteIcon(src: string, index: number): string {
+  const y = index * 32;
+  const posY = y * (24 / 32);
+  return `<span class="sprite-icon" style="background-image:url(${src});background-position:0 -${posY}px"></span>`;
+}
+
+function spriteRefIcon(ref: SpriteRef): string {
+  const scale = 24 / ref.w;
+  const bgW = ref.srcWidth * scale;
+  const posX = ref.x * scale;
+  const posY = ref.y * scale;
+  return `<span class="sprite-icon" style="background-image:url(${ref.src});background-size:${bgW}px auto;background-position:-${posX}px -${posY}px"></span>`;
 }

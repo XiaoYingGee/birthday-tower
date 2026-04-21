@@ -73,7 +73,32 @@ canvas {
 
 .side-panel .stat {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 4px;
+}
+
+.sprite-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: 24px auto;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.icon-text {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffd166;
+  flex-shrink: 0;
 }
 
 .side-panel .val {
@@ -94,6 +119,10 @@ canvas {
 .side-panel .item-entry {
   margin-bottom: 4px;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 .side-panel .m-name,
@@ -149,40 +178,36 @@ canvas {
 }
 
 #touch-controls {
-  margin-top: 12px;
-  display: flex;
-  justify-content: center;
+  display: none;
+}
+
+@media (pointer: coarse) {
+  #touch-controls {
+    display: block;
+  }
+}
+
+#joystick-base {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  touch-action: none;
+}
+
+#joystick-knob {
+  display: none;
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
   pointer-events: none;
-}
-
-.control-pad {
-  display: grid;
-  grid-template-columns: repeat(3, 64px);
-  grid-template-rows: repeat(2, 64px);
-  gap: 8px;
-  pointer-events: auto;
-}
-
-.control-btn {
-  min-width: 64px;
-  min-height: 64px;
-  border: 0;
-  border-radius: 16px;
-  background: rgba(238, 247, 233, 0.18);
-  color: #eef7e9;
-  font: inherit;
-  font-size: 22px;
-  font-weight: 700;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.28);
-}
-
-.control-btn.pressed {
-  background: rgba(255, 208, 92, 0.85);
-  color: #232018;
-}
-
-.control-btn.spacer {
-  visibility: hidden;
 }
 
 /* Shop overlay */

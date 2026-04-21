@@ -16,6 +16,7 @@ export interface FloorDefinition {
   name: string;
   grid: Cell[][];
   start: { x: number; y: number };
+  comeDown?: { x: number; y: number };
 }
 
 const CELL_LOOKUP: Record<string, Cell> = {
@@ -47,6 +48,7 @@ export function cloneFloor(floor: FloorDefinition): FloorDefinition {
   return {
     ...floor,
     start: { ...floor.start },
+    comeDown: floor.comeDown ? { ...floor.comeDown } : undefined,
     grid: floor.grid.map((row) => row.map((cell) => ({ ...cell }))),
   };
 }
@@ -57,10 +59,16 @@ export function parseFloor(id: number, name: string, rows: string[]): FloorDefin
   }
 
   let start = { x: 1, y: 1 };
+  let comeDown: { x: number; y: number } | undefined;
   const grid: Cell[][] = rows.map((row, y) =>
     row.split('').map((token, x) => {
       if (token === '@') {
         start = { x, y };
+        return { terrain: 'floor' as const };
+      }
+
+      if (token === '!') {
+        comeDown = { x, y };
         return { terrain: 'floor' as const };
       }
 
@@ -73,5 +81,5 @@ export function parseFloor(id: number, name: string, rows: string[]): FloorDefin
     }),
   );
 
-  return { id, name, grid, start };
+  return { id, name, grid, start, comeDown };
 }

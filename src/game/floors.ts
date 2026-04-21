@@ -3,7 +3,7 @@ import { cloneFloor, parseFloor, type FloorDefinition } from './floor';
 const FLOOR_DATA: FloorDefinition[] = [
   parseFloor(1, '教学层', [
     '#############',
-    '#U..Z...Z...#',
+    '#U!.Z...Z...#',
     '###########.#',
     '#......#ZZ#R#',
     '###Y####hh#.#',

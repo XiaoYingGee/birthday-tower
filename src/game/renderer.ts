@@ -49,7 +49,7 @@ export interface RenderState {
   items: ItemInfo[];
 }
 
-const GRID_SIZE = 11;
+const GRID_SIZE = 13;
 
 export class Renderer {
   private readonly canvas: HTMLCanvasElement;
@@ -130,7 +130,9 @@ export class Renderer {
       `<div class="stat">金 <span class="val">${state.player.gold}</span></div>` +
       `<div class="stat">经验 <span class="val">${state.player.exp}/100</span></div>` +
       `<div class="stat">Lv <span class="val">${state.player.level}</span></div>` +
-      `<div class="stat">钥匙 <span class="val">${state.player.keys}</span></div>`;
+      `<div class="stat key-yellow">🟡 <span class="val">${state.player.yellowKeys}</span></div>` +
+      `<div class="stat key-blue">🔵 <span class="val">${state.player.blueKeys}</span></div>` +
+      `<div class="stat key-red">🔴 <span class="val">${state.player.redKeys}</span></div>`;
 
     let rightHtml = '';
     if (state.monsters.length > 0) {

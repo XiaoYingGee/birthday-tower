@@ -11,7 +11,9 @@ export interface PlayerState {
   gold: number;
   exp: number;
   level: number;
-  keys: number;
+  yellowKeys: number;
+  blueKeys: number;
+  redKeys: number;
   dir: 'up' | 'down' | 'left' | 'right';
   isMoving: boolean;
   walkFrame: 0 | 1 | 2;
@@ -32,7 +34,9 @@ export function createPlayer(x: number, y: number): PlayerState {
     gold: 0,
     exp: 0,
     level: 1,
-    keys: 0,
+    yellowKeys: 0,
+    blueKeys: 0,
+    redKeys: 0,
     dir: 'down',
     isMoving: false,
     walkFrame: 0,
@@ -56,11 +60,13 @@ export function checkLevelUp(player: PlayerState): string[] {
 export function applyItem(player: PlayerState, item: ItemType): string {
   switch (item) {
     case 'yellowKey':
-      player.keys += 1;
+      player.yellowKeys += 1;
       return '拿到黄钥匙';
     case 'blueKey':
+      player.blueKeys += 1;
       return '拿到蓝钥匙';
     case 'redKey':
+      player.redKeys += 1;
       return '拿到红钥匙';
     case 'redPotion':
       player.hp += 50;
@@ -83,8 +89,16 @@ export function applyItem(player: PlayerState, item: ItemType): string {
 }
 
 export function consumeDoorKey(player: PlayerState, color: DoorColor): boolean {
-  if (color === 'yellow' && player.keys > 0) {
-    player.keys -= 1;
+  if (color === 'yellow' && player.yellowKeys > 0) {
+    player.yellowKeys -= 1;
+    return true;
+  }
+  if (color === 'blue' && player.blueKeys > 0) {
+    player.blueKeys -= 1;
+    return true;
+  }
+  if (color === 'red' && player.redKeys > 0) {
+    player.redKeys -= 1;
     return true;
   }
   return false;

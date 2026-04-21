@@ -52,8 +52,8 @@ export function cloneFloor(floor: FloorDefinition): FloorDefinition {
 }
 
 export function parseFloor(id: number, name: string, rows: string[]): FloorDefinition {
-  if (rows.length !== 11 || rows.some((row) => row.length !== 11)) {
-    throw new Error(`Floor ${id} must be 11x11.`);
+  if (rows.length !== 13 || rows.some((row) => row.length !== 13)) {
+    throw new Error(`Floor ${id} must be 13x13.`);
   }
 
   let start = { x: 1, y: 1 };

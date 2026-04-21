@@ -137,11 +137,11 @@ export class Renderer {
   private readonly resize = (): void => {
     const logicalSize = GRID_SIZE * TILE_SIZE;
 
+    const shellPad = 32;
     const isTouchDevice = matchMedia('(pointer: coarse)').matches;
     const joystickReserve = isTouchDevice ? 210 : 0;
-    const verticalPad = 16;
-    const availableHeight = window.innerHeight - joystickReserve - verticalPad;
-    const availableWidth = window.innerWidth;
+    const availableHeight = window.innerHeight - joystickReserve - shellPad;
+    const availableWidth = window.innerWidth - shellPad;
 
     const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize);
     const nextScale = Math.max(1, maxScale);

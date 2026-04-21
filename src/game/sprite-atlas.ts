@@ -134,16 +134,22 @@ export class SpriteLoader {
       return;
     }
 
+    // 将 32x48 的角色等比缩进 32x32 格子内：
+    // 跳过源图顶部 8px（多为头顶空白/装饰），保留 32x40 主体，再渲染为 32x32。
+    const sourceX = frame * hero.frameW;
+    const sourceY = hero.dirs[dir] * hero.frameH + 8;
+    const sourceH = hero.frameH - 8; // 40
+    const targetSize = TILE_SIZE * scale;
     ctx.drawImage(
       image,
-      frame * hero.frameW,
-      hero.dirs[dir] * hero.frameH,
+      sourceX,
+      sourceY,
       hero.frameW,
-      hero.frameH,
+      sourceH,
       dx,
       dy,
-      hero.frameW * scale,
-      hero.frameH * scale,
+      targetSize,
+      targetSize,
     );
   }
 

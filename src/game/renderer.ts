@@ -1,6 +1,6 @@
 import type { Cell, FloorDefinition, MonsterId } from './floor';
 import type { PlayerState } from './player';
-import { HERO_FRAME_HEIGHT, TILE_SIZE, type AtlasKey, type SpriteLoader } from './sprite-atlas';
+import { TILE_SIZE, type AtlasKey, type SpriteLoader } from './sprite-atlas';
 
 export interface FloatingTextRenderState {
   text: string;
@@ -94,7 +94,7 @@ export class Renderer {
     this.loader.drawHero(
       this.ctx,
       playerDrawX,
-      playerDrawY - (HERO_FRAME_HEIGHT - TILE_SIZE) * this.scale,
+      playerDrawY,
       this.scale,
       state.player.dir,
       state.player.walkFrame,

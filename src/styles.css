@@ -600,6 +600,23 @@ canvas {
   font-size: 11px;
 }
 
+.debug-input {
+  width: 50px;
+  padding: 2px 4px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  text-align: right;
+}
+
+.debug-input:focus {
+  outline: none;
+  border-color: #ffd166;
+}
+
 .debug-monster-block {
   margin-bottom: 4px;
   padding-bottom: 4px;

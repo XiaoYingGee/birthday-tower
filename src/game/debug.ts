@@ -90,14 +90,36 @@ export function createDebugPanel(engine: GameEngine): void {
     { key: 'blueKeys', label: '蓝钥匙' },
     { key: 'redKeys', label: '红钥匙' },
   ];
-  const playerValEls: { key: string; el: HTMLElement }[] = [];
+  const inputKeys = new Set(['hp', 'atk', 'def', 'gold']);
+  const playerSyncEls: { key: string; el: HTMLElement; isInput: boolean }[] = [];
   for (const f of playerFields) {
-    const { row, valEl } = makeRow(f.label, 0,
-      () => engine.debugAdjustPlayer(f.key, -1),
-      () => engine.debugAdjustPlayer(f.key, 1),
-    );
-    playerValEls.push({ key: f.key, el: valEl });
-    player.content.appendChild(row);
+    if (inputKeys.has(f.key)) {
+      const row = document.createElement('div');
+      row.className = 'debug-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'debug-label';
+      lbl.textContent = f.label;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.className = 'debug-input';
+      input.value = '0';
+      input.addEventListener('focus', () => { input.value = ''; });
+      input.addEventListener('change', () => {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val)) engine.debugSetPlayer(f.key, Math.max(0, val));
+      });
+      input.addEventListener('keydown', (e) => { e.stopPropagation(); });
+      row.append(lbl, input);
+      playerSyncEls.push({ key: f.key, el: input, isInput: true });
+      player.content.appendChild(row);
+    } else {
+      const { row, valEl } = makeRow(f.label, 0,
+        () => engine.debugAdjustPlayer(f.key, -1),
+        () => engine.debugAdjustPlayer(f.key, 1),
+      );
+      playerSyncEls.push({ key: f.key, el: valEl, isInput: false });
+      player.content.appendChild(row);
+    }
   }
   body.appendChild(player.wrapper);
 
@@ -117,6 +139,23 @@ export function createDebugPanel(engine: GameEngine): void {
     lvUp.content.appendChild(row);
   }
   body.appendChild(lvUp.wrapper);
+
+  // --- Items ---
+  const items = makeSection('道具属性', true);
+  const itemFields: { label: string; get: () => number; set: (v: number) => void }[] = [
+    { label: '红药水HP', get: () => CONFIG.items.redPotion.hp, set: (v) => { CONFIG.items.redPotion.hp = v; } },
+    { label: '蓝药水HP', get: () => CONFIG.items.bluePotion.hp, set: (v) => { CONFIG.items.bluePotion.hp = v; } },
+    { label: '红宝石攻', get: () => CONFIG.items.redGem.atk, set: (v) => { CONFIG.items.redGem.atk = v; } },
+    { label: '蓝宝石防', get: () => CONFIG.items.blueGem.def, set: (v) => { CONFIG.items.blueGem.def = v; } },
+  ];
+  for (const f of itemFields) {
+    const { row, valEl } = makeRow(f.label, f.get(),
+      () => { f.set(Math.max(1, f.get() - 1)); valEl.textContent = String(f.get()); },
+      () => { f.set(f.get() + 1); valEl.textContent = String(f.get()); },
+    );
+    items.content.appendChild(row);
+  }
+  body.appendChild(items.wrapper);
 
   // --- Monsters ---
   const monsters = makeSection('怪物数值', true);
@@ -143,8 +182,15 @@ export function createDebugPanel(engine: GameEngine): void {
   setInterval(() => {
     const p = engine.debugGetPlayer();
     if (!p) return;
-    for (const { key, el } of playerValEls) {
-      el.textContent = String((p as any)[key]);
+    for (const { key, el, isInput } of playerSyncEls) {
+      if (isInput) {
+        const input = el as HTMLInputElement;
+        if (document.activeElement !== input) {
+          input.value = String((p as any)[key]);
+        }
+      } else {
+        el.textContent = String((p as any)[key]);
+      }
     }
   }, 200);
 }

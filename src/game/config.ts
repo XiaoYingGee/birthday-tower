@@ -30,8 +30,8 @@ export const CONFIG = {
   items: {
     redPotion: { hp: 50 },
     bluePotion: { hp: 150 },
-    redGem: { atk: 5 },
-    blueGem: { def: 5 },
+    redGem: { atk: 3 },
+    blueGem: { def: 3 },
     treasureMultiplier: 2,
   },
   shop: {
@@ -40,9 +40,9 @@ export const CONFIG = {
     def: { cost: 50, gain: 5 },
   },
   monsters: {
-    zombie: { name: '僵尸', hp: 25, atk: 15, def: 2, gold: 5, exp: 10 },
+    zombie: { name: '僵尸', hp: 25, atk: 14, def: 3, gold: 5, exp: 10 },
     skeleton: { name: '骷髅', hp: 50, atk: 19, def: 3, gold: 8, exp: 12 },
-    spider: { name: '蝙蝠', hp: 70, atk: 22, def: 8, gold: 15, exp: 25 },
+    spider: { name: '蝙蝠', hp: 75, atk: 31, def: 10, gold: 10, exp: 14 },
     creeper: { name: '棕巫师', hp: 100, atk: 28, def: 12, gold: 20, exp: 35 },
     enderman: { name: '暗黑骑士', hp: 150, atk: 36, def: 16, gold: 30, exp: 50 },
     wither: { name: '龙王', hp: 1500, atk: 120, def: 55, gold: 0, exp: 0 },

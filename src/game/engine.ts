@@ -706,6 +706,13 @@ export class GameEngine {
     }
   }
 
+  debugSetPlayer(key: string, value: number): void {
+    const p = this.player as any;
+    if (typeof p[key] === 'number') {
+      p[key] = value;
+    }
+  }
+
   debugAdjustMonster(id: string, stat: 'hp' | 'atk' | 'def' | 'gold' | 'exp', delta: number): void {
     const m = CONFIG.monsters[id as keyof typeof CONFIG.monsters];
     if (m) {

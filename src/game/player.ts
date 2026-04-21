@@ -75,11 +75,11 @@ export function applyItem(player: PlayerState, item: ItemType): string {
       player.hp += 150;
       return '蓝药水 HP+150';
     case 'redGem':
-      player.atk += 10;
-      return '红宝石 攻+10';
+      player.atk += 5;
+      return '红宝石 攻+5';
     case 'blueGem':
-      player.def += 10;
-      return '蓝宝石 防+10';
+      player.def += 5;
+      return '蓝宝石 防+5';
     case 'treasure':
       player.hp *= 2;
       player.atk *= 2;

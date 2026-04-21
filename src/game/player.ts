@@ -1,4 +1,5 @@
 import type { DoorColor, ItemType } from './floor';
+import { CONFIG } from './config';
 
 export interface PlayerState {
   x: number;
@@ -20,23 +21,22 @@ export interface PlayerState {
   walkFrameTimer: number;
 }
 
-const LEVEL_UP_EXP = 100;
-
 export function createPlayer(x: number, y: number): PlayerState {
+  const p = CONFIG.player;
   return {
     x,
     y,
     visualX: x * 32,
     visualY: y * 32,
-    hp: 100,
-    atk: 10,
-    def: 10,
-    gold: 0,
-    exp: 0,
-    level: 1,
-    yellowKeys: 0,
-    blueKeys: 0,
-    redKeys: 0,
+    hp: p.hp,
+    atk: p.atk,
+    def: p.def,
+    gold: p.gold,
+    exp: p.exp,
+    level: p.level,
+    yellowKeys: p.yellowKeys,
+    blueKeys: p.blueKeys,
+    redKeys: p.redKeys,
     dir: 'down',
     isMoving: false,
     walkFrame: 0,
@@ -45,19 +45,21 @@ export function createPlayer(x: number, y: number): PlayerState {
 }
 
 export function checkLevelUp(player: PlayerState): string[] {
+  const lv = CONFIG.levelUp;
   const messages: string[] = [];
-  while (player.exp >= LEVEL_UP_EXP) {
-    player.exp -= LEVEL_UP_EXP;
+  while (player.exp >= lv.expRequired) {
+    player.exp -= lv.expRequired;
     player.level += 1;
-    player.hp += 100;
-    player.atk += 5;
-    player.def += 5;
-    messages.push(`升级！Lv${player.level} HP+100 攻+5 防+5`);
+    player.hp += lv.hpGain;
+    player.atk += lv.atkGain;
+    player.def += lv.defGain;
+    messages.push(`升级！Lv${player.level} HP+${lv.hpGain} 攻+${lv.atkGain} 防+${lv.defGain}`);
   }
   return messages;
 }
 
 export function applyItem(player: PlayerState, item: ItemType): string {
+  const items = CONFIG.items;
   switch (item) {
     case 'yellowKey':
       player.yellowKeys += 1;
@@ -69,22 +71,22 @@ export function applyItem(player: PlayerState, item: ItemType): string {
       player.redKeys += 1;
       return '拿到红钥匙';
     case 'redPotion':
-      player.hp += 50;
-      return '红药水 HP+50';
+      player.hp += items.redPotion.hp;
+      return `红药水 HP+${items.redPotion.hp}`;
     case 'bluePotion':
-      player.hp += 150;
-      return '蓝药水 HP+150';
+      player.hp += items.bluePotion.hp;
+      return `蓝药水 HP+${items.bluePotion.hp}`;
     case 'redGem':
-      player.atk += 5;
-      return '红宝石 攻+5';
+      player.atk += items.redGem.atk;
+      return `红宝石 攻+${items.redGem.atk}`;
     case 'blueGem':
-      player.def += 5;
-      return '蓝宝石 防+5';
+      player.def += items.blueGem.def;
+      return `蓝宝石 防+${items.blueGem.def}`;
     case 'treasure':
-      player.hp *= 2;
-      player.atk *= 2;
-      player.def *= 2;
-      return '★ 神秘宝物！HP/攻/防 全部翻倍！';
+      player.hp *= items.treasureMultiplier;
+      player.atk *= items.treasureMultiplier;
+      player.def *= items.treasureMultiplier;
+      return `★ 神秘宝物！HP/攻/防 全部×${items.treasureMultiplier}！`;
   }
 }
 

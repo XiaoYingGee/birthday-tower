@@ -1,0 +1,60 @@
+import type { MonsterId } from './floor';
+
+export interface MonsterConfig {
+  name: string;
+  hp: number;
+  atk: number;
+  def: number;
+  gold: number;
+  exp: number;
+}
+
+export const CONFIG = {
+  player: {
+    hp: 100,
+    atk: 10,
+    def: 10,
+    gold: 0,
+    exp: 0,
+    level: 1,
+    yellowKeys: 0,
+    blueKeys: 0,
+    redKeys: 0,
+  },
+  levelUp: {
+    expRequired: 100,
+    hpGain: 50,
+    atkGain: 2,
+    defGain: 2,
+  },
+  items: {
+    redPotion: { hp: 50 },
+    bluePotion: { hp: 150 },
+    redGem: { atk: 5 },
+    blueGem: { def: 5 },
+    treasureMultiplier: 2,
+  },
+  shop: {
+    hp: { cost: 30, gain: 100 },
+    atk: { cost: 50, gain: 5 },
+    def: { cost: 50, gain: 5 },
+  },
+  monsters: {
+    zombie: { name: '僵尸', hp: 25, atk: 15, def: 2, gold: 5, exp: 10 },
+    skeleton: { name: '骷髅', hp: 50, atk: 19, def: 3, gold: 8, exp: 12 },
+    spider: { name: '蝙蝠', hp: 70, atk: 22, def: 8, gold: 15, exp: 25 },
+    creeper: { name: '棕巫师', hp: 100, atk: 28, def: 12, gold: 20, exp: 35 },
+    enderman: { name: '暗黑骑士', hp: 150, atk: 36, def: 16, gold: 30, exp: 50 },
+    wither: { name: '龙王', hp: 1500, atk: 120, def: 55, gold: 0, exp: 0 },
+  } as Record<MonsterId, MonsterConfig>,
+  battle: {
+    minPlayerHit: 1,
+    minMonsterHit: 0,
+  },
+  timing: {
+    moveDuration: 150,
+    battleDuration: 300,
+    floatDuration: 500,
+    messageDuration: 1800,
+  },
+};

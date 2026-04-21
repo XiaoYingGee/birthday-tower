@@ -2,6 +2,7 @@ import './styles.css';
 
 import { GameEngine } from './game/engine';
 import { SpriteLoader } from './game/sprite-atlas';
+import { createDebugPanel } from './game/debug';
 
 function blockMobileGestures(): void {
   const blocker = (event: Event) => event.preventDefault();
@@ -27,9 +28,12 @@ const joystickKnob = requireEl<HTMLElement>('joystick-knob');
 const shell = requireEl<HTMLElement>('game-shell');
 const messageEl = requireEl<HTMLElement>('message');
 const bannerEl = requireEl<HTMLElement>('banner');
-const leftPanel = requireEl<HTMLElement>('left-panel');
 const rightPanel = requireEl<HTMLElement>('right-panel');
 const shopOverlay = requireEl<HTMLElement>('shop-overlay');
+const battleConfirm = requireEl<HTMLElement>('battle-confirm');
+const deathOverlay = requireEl<HTMLElement>('death-overlay');
+const restartBtn = requireEl<HTMLElement>('restart-btn');
+const restartConfirm = requireEl<HTMLElement>('restart-confirm');
 
 const playerName = import.meta.env.VITE_PLAYER_NAME || '小朋友';
 const playerAge = import.meta.env.VITE_PLAYER_AGE || '6';
@@ -52,15 +56,22 @@ async function bootstrap(): Promise<void> {
     shell,
     messageEl,
     bannerEl,
-    leftPanel,
     rightPanel,
     shopOverlay,
+    battleConfirm,
+    deathOverlay,
+    restartBtn,
+    restartConfirm,
     playerName,
     playerAge,
     loader,
   });
 
   window.addEventListener('beforeunload', () => engine.destroy());
+
+  if (import.meta.env.DEV) {
+    createDebugPanel(engine);
+  }
 }
 
 void bootstrap();

@@ -14,11 +14,11 @@
     <div id="app">
       <div id="game-shell">
         <div id="banner"></div>
+        <button id="restart-btn">重新开始</button>
         <div id="game-area">
-          <div id="left-panel" class="side-panel"></div>
           <canvas id="game-canvas" aria-label="生日魔塔游戏画布"></canvas>
-          <div id="right-panel" class="side-panel"></div>
         </div>
+        <div id="right-panel" class="side-panel"></div>
         <div id="touch-controls" aria-hidden="true">
           <div id="joystick-base">
             <div id="joystick-knob"></div>
@@ -33,6 +33,35 @@
             <button class="shop-btn" data-shop="atk">攻+5 (50金)</button>
             <button class="shop-btn" data-shop="def">防+5 (50金)</button>
             <button class="shop-close">关闭</button>
+          </div>
+        </div>
+        <div id="battle-confirm">
+          <div class="confirm-panel">
+            <div class="confirm-title">战斗确认</div>
+            <div class="confirm-body"></div>
+            <div class="confirm-actions">
+              <button class="confirm-btn confirm-yes">战斗</button>
+              <button class="confirm-btn confirm-no">取消</button>
+            </div>
+          </div>
+        </div>
+        <div id="death-overlay">
+          <div class="confirm-panel">
+            <div class="confirm-title">你被击败了</div>
+            <div class="death-body"></div>
+            <div class="confirm-actions">
+              <button class="confirm-btn confirm-yes death-restart">重新开始</button>
+            </div>
+          </div>
+        </div>
+        <div id="restart-confirm">
+          <div class="confirm-panel">
+            <div class="confirm-title">重新开始</div>
+            <div class="confirm-body" style="color:#ff5f56">当前进度将被清除</div>
+            <div class="confirm-actions">
+              <button class="confirm-btn confirm-yes restart-yes">确定</button>
+              <button class="confirm-btn confirm-no restart-no">取消</button>
+            </div>
           </div>
         </div>
       </div>

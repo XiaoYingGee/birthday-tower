@@ -36,15 +36,7 @@ export interface MonsterInfo {
   hp: number;
   atk: number;
   def: number;
-  damage: number;
-  fatal: boolean;
   sprite: SpriteRef;
-}
-
-export interface ItemInfo {
-  name: string;
-  desc: string;
-  sprite?: SpriteRef;
 }
 
 export interface RenderState {
@@ -53,11 +45,11 @@ export interface RenderState {
   floorName: string;
   floor: FloorDefinition;
   player: PlayerState;
+  playerName: string;
   message: string;
   floatingTexts: FloatingTextRenderState[];
   battle?: BattleRenderState;
   monsters: MonsterInfo[];
-  items: ItemInfo[];
 }
 
 const GRID_SIZE = 13;
@@ -67,8 +59,8 @@ export class Renderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly messageEl: HTMLElement;
   private readonly bannerEl: HTMLElement;
-  private readonly leftPanel: HTMLElement;
   private readonly rightPanel: HTMLElement;
+  private readonly restartBtn: HTMLElement;
   private readonly loader: SpriteLoader;
   private scale = 2;
 
@@ -76,15 +68,15 @@ export class Renderer {
     canvas: HTMLCanvasElement,
     messageEl: HTMLElement,
     bannerEl: HTMLElement,
-    leftPanel: HTMLElement,
     rightPanel: HTMLElement,
+    restartBtn: HTMLElement,
     loader: SpriteLoader,
   ) {
     this.canvas = canvas;
     this.messageEl = messageEl;
     this.bannerEl = bannerEl;
-    this.leftPanel = leftPanel;
     this.rightPanel = rightPanel;
+    this.restartBtn = restartBtn;
     this.loader = loader;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -134,34 +126,30 @@ export class Renderer {
 
     this.bannerEl.textContent = `F${state.floorNumber} ${state.floorName}`;
 
-    this.leftPanel.innerHTML =
-      `<div class="stat">${spriteIcon('/sprites/items.png', 20)} HP <span class="val">${state.player.hp}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 50)} 攻 <span class="val">${state.player.atk}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 55)} 防 <span class="val">${state.player.def}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 11)} 金 <span class="val">${state.player.gold}</span></div>` +
-      `<div class="stat"><span class="icon-text">EXP</span> 经验 <span class="val">${state.player.exp}/100</span></div>` +
-      `<div class="stat"><span class="icon-text">Lv</span> Lv <span class="val">${state.player.level}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 0)} 黄钥匙 <span class="val">${state.player.yellowKeys}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 1)} 蓝钥匙 <span class="val">${state.player.blueKeys}</span></div>` +
-      `<div class="stat">${spriteIcon('/sprites/items.png', 2)} 红钥匙 <span class="val">${state.player.redKeys}</span></div>`;
+    const p = state.player;
+    let html =
+      `<div class="panel-title"><strong>${state.playerName}</strong> <strong>Lv.${p.level}</strong>（${p.exp}/100）</div>` +
+      '<hr class="panel-divider">' +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 20)}<span class="label">HP</span><span class="val">${p.hp}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 50)}<span class="label">攻击</span><span class="val">${p.atk}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 55)}<span class="label">防御</span><span class="val">${p.def}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 11)}<span class="label">金币</span><span class="val">${p.gold}</span></div>` +
+      '<hr class="panel-divider">' +
+      '<div class="section-title">道具</div>' +
+      '<hr class="panel-divider">' +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 0)}<span class="label">黄钥匙</span><span class="val">${p.yellowKeys}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 1)}<span class="label">蓝钥匙</span><span class="val">${p.blueKeys}</span></div>` +
+      `<div class="stat">${spriteIcon('/sprites/items.png', 2)}<span class="label">红钥匙</span><span class="val">${p.redKeys}</span></div>`;
 
-    let rightHtml = '';
     if (state.monsters.length > 0) {
-      rightHtml += '<div class="section-title">怪物</div>';
+      html += '<hr class="panel-divider">';
+      html += '<div class="section-title">怪物（HP/攻/防）</div>';
+      html += '<hr class="panel-divider">';
       for (const m of state.monsters) {
-        const dmgClass = m.fatal ? 'fatal' : 'safe';
-        const dmgText = m.fatal ? '无法击败' : `-${m.damage}HP`;
-        rightHtml += `<div class="monster-entry">${spriteRefIcon(m.sprite)}<span class="m-name">${m.name}</span> <span class="m-stats">HP${m.hp}/攻${m.atk}/防${m.def}</span> <span class="${dmgClass}">${dmgText}</span></div>`;
+        html += `<div class="stat">${spriteRefIcon(m.sprite)}<span class="label">${m.name}</span><span class="val">${m.hp}/${m.atk}/${m.def}</span></div>`;
       }
     }
-    if (state.items.length > 0) {
-      rightHtml += '<div class="section-title">道具</div>';
-      for (const item of state.items) {
-        const icon = item.sprite ? spriteRefIcon(item.sprite) : '';
-        rightHtml += `<div class="item-entry">${icon}<span class="i-name">${item.name}</span> <span class="i-desc">${item.desc}</span></div>`;
-      }
-    }
-    this.rightPanel.innerHTML = rightHtml;
+    this.rightPanel.innerHTML = html;
 
     this.messageEl.textContent = state.message;
     this.messageEl.classList.toggle('visible', state.message.length > 0);
@@ -170,25 +158,37 @@ export class Renderer {
   private readonly resize = (): void => {
     const logicalSize = GRID_SIZE * TILE_SIZE;
 
-    const bannerH = this.bannerEl.offsetHeight || 32;
+    const bannerH = 32;
     const isTouchDevice = matchMedia('(pointer: coarse)').matches;
     const joystickReserve = isTouchDevice ? 170 : 0;
-    const verticalPad = 16;
-    const availableHeight = window.innerHeight - bannerH - joystickReserve - verticalPad;
-
-    const leftW = this.leftPanel.offsetWidth > 0 ? this.leftPanel.offsetWidth : 0;
-    const rightW = this.rightPanel.offsetWidth > 0 ? this.rightPanel.offsetWidth : 0;
-    const gap = (leftW > 0 || rightW > 0) ? 8 : 0;
-    const availableWidth = window.innerWidth - leftW - rightW - gap * 2;
+    const verticalPad = 16 + bannerH;
+    const availableHeight = window.innerHeight - joystickReserve - verticalPad;
+    const availableWidth = window.innerWidth;
 
     const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize);
-    const nextScale = Math.max(1, Math.floor(maxScale));
+    const nextScale = Math.max(1, maxScale);
 
     this.scale = nextScale;
-    this.canvas.width = logicalSize * this.scale;
-    this.canvas.height = logicalSize * this.scale;
-    this.canvas.style.width = `${this.canvas.width}px`;
-    this.canvas.style.height = `${this.canvas.height}px`;
+    const cssSize = Math.floor(logicalSize * this.scale);
+    const pixelRatio = window.devicePixelRatio || 1;
+    this.canvas.width = Math.round(cssSize * pixelRatio);
+    this.canvas.height = Math.round(cssSize * pixelRatio);
+    this.canvas.style.width = `${cssSize}px`;
+    this.canvas.style.height = `${cssSize}px`;
+    this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    this.ctx.imageSmoothingEnabled = false;
+
+    requestAnimationFrame(() => {
+      const rect = this.canvas.getBoundingClientRect();
+      this.bannerEl.style.left = `${rect.left}px`;
+      this.bannerEl.style.top = `${rect.top - bannerH}px`;
+      this.rightPanel.style.left = `${rect.right + 8}px`;
+      this.rightPanel.style.top = `${rect.top}px`;
+      const panelPadding = 10 * 2 + 2;
+      this.restartBtn.style.width = `${this.rightPanel.offsetWidth - panelPadding}px`;
+      this.restartBtn.style.left = `${rect.right + 8}px`;
+      this.restartBtn.style.top = `${rect.bottom - this.restartBtn.offsetHeight}px`;
+    });
   };
 
   private drawCell(state: RenderState, cell: Cell, gridX: number, gridY: number, drawX: number, drawY: number): void {

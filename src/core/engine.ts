@@ -164,11 +164,47 @@ export class GameEngine implements GameContext {
   }
 
   private setupRestartBtn(): void {
-    this.restartBtn.addEventListener('click', () => {
-      requestAnimationFrame(() => {
-        this.restartConfirm.classList.add('visible');
-      });
-    });
+    let pressTimer: number | undefined;
+    let elapsed = 0;
+    let interval: number | undefined;
+    const HOLD_DURATION = 5000;
+    const btn = this.restartBtn;
+
+    const startHold = () => {
+      elapsed = 0;
+      btn.textContent = '5';
+      btn.style.background = 'rgba(255,80,60,0.3)';
+      interval = window.setInterval(() => {
+        elapsed += 100;
+        const remaining = Math.ceil((HOLD_DURATION - elapsed) / 1000);
+        btn.textContent = String(remaining);
+        if (elapsed >= HOLD_DURATION) {
+          cancelHold();
+          btn.textContent = '↺';
+          btn.style.background = '';
+          requestAnimationFrame(() => {
+            this.restartConfirm.classList.add('visible');
+          });
+        }
+      }, 100);
+    };
+
+    const cancelHold = () => {
+      if (interval) { clearInterval(interval); interval = undefined; }
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = undefined; }
+      btn.textContent = '↺';
+      btn.style.background = '';
+    };
+
+    const showTip = () => {
+      this.showMessage('长按5秒重启游戏');
+    };
+
+    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); startHold(); });
+    btn.addEventListener('pointerup', () => { if (elapsed < HOLD_DURATION) showTip(); cancelHold(); });
+    btn.addEventListener('pointerleave', () => { cancelHold(); });
+    btn.addEventListener('pointercancel', () => { cancelHold(); });
+
     this.restartConfirm.querySelector('.restart-yes')!.addEventListener('click', () => {
       this.restartConfirm.classList.remove('visible');
       this.newGame();

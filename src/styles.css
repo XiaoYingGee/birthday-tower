@@ -59,16 +59,16 @@ canvas {
 }
 
 #restart-btn {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  width: 32px;
-  height: 32px;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 50%;
+  position: absolute;
+  left: 65px;
+  top: 65px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
   background: rgba(255,255,255,0.08);
   color: rgba(255,255,255,0.4);
-  font-size: 18px;
+  font-size: 24px;
   line-height: 1;
   cursor: pointer;
   z-index: 10;
@@ -593,6 +593,43 @@ canvas {
 .victory-replay:active {
   background: rgba(255, 208, 92, 0.85);
   color: #232018;
+}
+
+.victory-letter {
+  display: none;
+  margin-top: 20px;
+  padding: 20px 24px;
+  background: rgba(20, 18, 15, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 209, 102, 0.3);
+  animation: letterFadeIn 1.5s ease;
+}
+
+.victory-letter.visible {
+  display: block;
+}
+
+.letter-content {
+  text-align: left;
+  font-size: clamp(12px, 2vw, 15px);
+  line-height: 2;
+  color: #fff8df;
+}
+
+.letter-content p {
+  margin: 0;
+}
+
+.letter-sign {
+  text-align: right;
+  margin-top: 12px !important;
+  color: #ffd166;
+  font-weight: 700;
+}
+
+@keyframes letterFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes bounce {

@@ -145,9 +145,11 @@ export class Renderer {
     const shellPad = 32;
     const panelReserve = 50;
     const isTouchDevice = matchMedia('(pointer: coarse)').matches;
-    const joystickReserve = isTouchDevice ? 210 : 0;
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const joystickReserve = isTouchDevice && isPortrait ? 210 : 0;
+    const dpadWidthReserve = isTouchDevice && !isPortrait ? 200 : 0;
     const availableHeight = window.innerHeight - joystickReserve - shellPad - panelReserve;
-    const availableWidth = window.innerWidth - shellPad;
+    const availableWidth = window.innerWidth - shellPad - dpadWidthReserve;
 
     const maxScale = Math.min(availableWidth / logicalSize, availableHeight / logicalSize);
     const nextScale = Math.max(1, maxScale);
@@ -171,9 +173,9 @@ export class Renderer {
       this.bannerEl.style.height = `${tileOnScreen}px`;
       const wrap = this.panel.parentElement;
       if (wrap) {
-        const isPortrait = window.innerHeight > window.innerWidth;
+        const isPortraitNow = window.innerHeight > window.innerWidth;
         wrap.style.position = 'absolute';
-        if (isPortrait) {
+        if (isPortraitNow) {
           wrap.style.left = `${rect.left}px`;
           wrap.style.top = `${rect.top - 4}px`;
           wrap.style.transform = 'translateY(-100%)';

@@ -13,6 +13,10 @@ export class VictoryEffect {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly replayButton: HTMLButtonElement;
+  private readonly easterEggButton: HTMLButtonElement;
+  private readonly letterOverlay: HTMLDivElement;
+  private readonly birthdaySection: HTMLDivElement;
+  private readonly contentEl: HTMLDivElement;
   private readonly onReplay: () => void;
   private readonly particles: Particle[] = [];
   private rafId = 0;
@@ -37,7 +41,10 @@ export class VictoryEffect {
 
     const content = document.createElement('div');
     content.className = 'victory-content';
-    content.innerHTML = `
+    this.contentEl = content;
+
+    this.birthdaySection = document.createElement('div');
+    this.birthdaySection.innerHTML = `
       <h1>🎂 生日快乐 🎂</h1>
       <p>祝 ${playerName} ${playerAge} 岁生日快乐！</p>
       <div class="victory-emoji">🎂 🎁 🎈</div>
@@ -51,6 +58,43 @@ export class VictoryEffect {
       this.hide();
       this.onReplay();
     });
+
+    this.easterEggButton = document.createElement('button');
+    this.easterEggButton.className = 'victory-replay';
+    this.easterEggButton.textContent = '查看彩蛋';
+    this.easterEggButton.hidden = true;
+    this.easterEggButton.addEventListener('click', () => {
+      this.easterEggButton.hidden = true;
+      this.birthdaySection.hidden = true;
+      this.contentEl.style.background = 'rgba(10, 8, 5, 0.95)';
+      this.contentEl.style.position = 'absolute';
+      this.contentEl.style.inset = '0';
+      this.contentEl.style.borderRadius = '0';
+      this.contentEl.style.display = 'flex';
+      this.contentEl.style.flexDirection = 'column';
+      this.contentEl.style.alignItems = 'center';
+      this.contentEl.style.justifyContent = 'center';
+      this.letterOverlay.classList.add('visible');
+      window.setTimeout(() => {
+        this.replayButton.hidden = false;
+      }, 10000);
+    });
+
+    this.letterOverlay = document.createElement('div');
+    this.letterOverlay.className = 'victory-letter';
+    this.letterOverlay.innerHTML = `
+      <div class="letter-content">
+        <p>儿子：</p>
+        <p>你能走到这里，说明你克服了很多诱惑与陷阱，努力思考去破解迷题，为你感到骄傲！</p>
+        <p>希望你对一切保持好奇，充满热情！</p>
+        <p>祝你生日快乐！！！</p>
+        <p class="letter-sign">爱你的爸爸</p>
+      </div>
+    `;
+
+    content.appendChild(this.birthdaySection);
+    content.appendChild(this.easterEggButton);
+    content.appendChild(this.letterOverlay);
     content.appendChild(this.replayButton);
 
     this.overlay.append(this.canvas, content);
@@ -66,6 +110,17 @@ export class VictoryEffect {
     this.lastBurst = 0;
     this.active = true;
     this.replayButton.hidden = true;
+    this.easterEggButton.hidden = true;
+    this.birthdaySection.hidden = false;
+    this.contentEl.style.background = '';
+    this.contentEl.style.position = '';
+    this.contentEl.style.inset = '';
+    this.contentEl.style.borderRadius = '';
+    this.contentEl.style.display = '';
+    this.contentEl.style.flexDirection = '';
+    this.contentEl.style.alignItems = '';
+    this.contentEl.style.justifyContent = '';
+    this.letterOverlay.classList.remove('visible');
     this.overlay.classList.add('visible');
     this.loop(this.startedAt);
   }
@@ -108,8 +163,8 @@ export class VictoryEffect {
     this.updateParticles(delta / 16.67);
     this.renderParticles();
 
-    if (elapsed >= 8000) {
-      this.replayButton.hidden = false;
+    if (elapsed >= 8000 && !this.letterOverlay.classList.contains('visible')) {
+      this.easterEggButton.hidden = false;
     }
 
     this.rafId = requestAnimationFrame(this.loop);

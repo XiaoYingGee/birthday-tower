@@ -36,7 +36,6 @@ export function handleStair(ctx: GameContext, cell: Cell): void {
       const adj = findAdjacentFloor(floor, downStair.x, downStair.y);
       ctx.placePlayer(adj.x, adj.y);
     }
-    ctx.showMessage(`${ctx.currentFloor.name}`);
     ctx.save();
     return;
   }
@@ -59,7 +58,6 @@ export function handleStair(ctx: GameContext, cell: Cell): void {
       const adj = findAdjacentFloor(floor, upStair.x, upStair.y);
       ctx.placePlayer(adj.x, adj.y);
     }
-    ctx.showMessage(`${ctx.currentFloor.name}`);
     ctx.save();
   }
 }

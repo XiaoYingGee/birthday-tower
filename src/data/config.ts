@@ -37,7 +37,7 @@ export const CONFIG = {
   shop: {
     hp: { cost: 30, gain: 100 },
     atk: { cost: 50, gain: 5 },
-    def: { cost: 50, gain: 5 },
+    def: { cost: 50, gain: 3 },
   },
   monsters: {
     zombie: { name: '僵尸', hp: 25, atk: 14, def: 3, gold: 5, exp: 10 },

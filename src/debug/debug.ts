@@ -58,6 +58,9 @@ export function createDebugPanel(engine: GameEngine): void {
   `;
   document.body.appendChild(panel);
 
+  panel.addEventListener('keydown', (e) => { e.stopPropagation(); });
+  panel.addEventListener('keyup', (e) => { e.stopPropagation(); });
+
   const toggle = panel.querySelector('.debug-toggle') as HTMLElement;
   const body = panel.querySelector('.debug-body') as HTMLElement;
   toggle.addEventListener('click', () => {

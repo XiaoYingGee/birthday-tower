@@ -4,7 +4,7 @@ import { InputManager, type InputAction } from '../systems/input';
 import { Joystick } from '../systems/joystick';
 import { applyItem, consumeDoorKey, createPlayer, type PlayerState } from '../entities/player';
 import { Renderer, type FloatingTextRenderState } from '../render/renderer';
-import { saveGame, loadGame, clearSave } from './save';
+import { saveGame, loadGame, clearSave, saveToSlot, loadFromSlot, getSlotInfo } from './save';
 import { TILE_SIZE, type SpriteLoader } from '../render/sprite-atlas';
 import { VictoryEffect } from '../render/victory';
 import { CONFIG } from '../data/config';
@@ -47,6 +47,8 @@ export interface GameConfig {
   treasureConfirm: HTMLElement;
   fairyConfirm: HTMLElement;
   victoryChest: HTMLElement;
+  saveBtn: HTMLElement;
+  saveOverlay: HTMLElement;
   playerName: string;
   playerAge: string;
   loader: SpriteLoader;
@@ -113,11 +115,12 @@ export class GameEngine implements GameContext {
     this.setupTreasureConfirm();
     this.setupFairyConfirm();
     this.setupVictoryChest();
+    this.setupSaveOverlay(config.saveBtn, config.saveOverlay);
     setupTapInspect(config.canvas, this.renderer, this);
     this.destroyModalKb = setupModalKeyboard([
       config.shopOverlay, config.princessOverlay, config.keyshopOverlay,
       config.battleConfirm, config.deathOverlay, config.restartConfirm,
-      config.treasureConfirm, config.fairyConfirm,
+      config.treasureConfirm, config.fairyConfirm, config.saveOverlay,
     ]);
 
     this.initGame();
@@ -251,6 +254,73 @@ export class GameEngine implements GameContext {
       this.pendingFairyCell = undefined;
       this.fairyConfirm.classList.remove('visible');
     });
+  }
+
+  private setupSaveOverlay(saveBtnEl: HTMLElement, overlay: HTMLElement): void {
+    const slotsEl = overlay.querySelector('.save-slots')!;
+    const closeBtn = overlay.querySelector('.save-close')!;
+
+    const renderSlots = () => {
+      slotsEl.innerHTML = '';
+      for (let i = 1; i <= 3; i++) {
+        const info = getSlotInfo(i);
+        const slot = document.createElement('div');
+        slot.className = 'save-slot';
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'save-slot-info';
+        const label = document.createElement('div');
+        label.className = 'slot-label';
+        label.textContent = `存档 ${i}`;
+        infoDiv.appendChild(label);
+        if (info.exists) {
+          const detail = document.createElement('div');
+          detail.className = 'slot-detail';
+          const time = info.timestamp ? new Date(info.timestamp).toLocaleString() : '';
+          detail.textContent = `${this.playerName} Lv.${info.level} F${(info.floorIndex ?? 0) + 1} ${time}`;
+          infoDiv.appendChild(detail);
+        } else {
+          const detail = document.createElement('div');
+          detail.className = 'slot-detail';
+          detail.textContent = '空';
+          infoDiv.appendChild(detail);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'save-slot-actions';
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'slot-save-btn';
+        saveBtn.textContent = '保存';
+        saveBtn.addEventListener('click', () => {
+          saveToSlot(i, this.floorIndex, this.player, this.floors);
+          this.showMessage(`已保存到存档 ${i}`);
+          renderSlots();
+        });
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'slot-load-btn';
+        loadBtn.textContent = '读取';
+        loadBtn.disabled = !info.exists;
+        loadBtn.addEventListener('click', () => {
+          this.reset();
+          const result = loadFromSlot(i, this.floors, this.player);
+          if (result) {
+            this.floorIndex = result.floorIndex;
+            saveGame(this.floorIndex, this.player, this.floors);
+            this.showMessage(`已读取存档 ${i}`);
+          }
+          overlay.classList.remove('visible');
+        });
+        actions.append(saveBtn, loadBtn);
+        slot.append(infoDiv, actions);
+        slotsEl.appendChild(slot);
+      }
+    };
+
+    saveBtnEl.addEventListener('click', () => {
+      renderSlots();
+      overlay.classList.add('visible');
+    });
+    closeBtn.addEventListener('click', () => { overlay.classList.remove('visible'); });
   }
 
   private setupVictoryChest(): void {
@@ -492,7 +562,7 @@ export class GameEngine implements GameContext {
     this.pendingBattle = undefined;
     this.moveAnimation = undefined;
     this.battleAnimation = undefined;
-    this.showMessage(`重置 F${index + 1} ${this.currentFloor.name}`);
+    this.showMessage(`重置 F${index + 1}`);
     this.save();
   }
 
@@ -504,7 +574,7 @@ export class GameEngine implements GameContext {
     this.pendingBattle = undefined;
     this.moveAnimation = undefined;
     this.battleAnimation = undefined;
-    this.showMessage(`跳转到 F${index + 1} ${this.currentFloor.name}`);
+    this.showMessage(`跳转到 F${index + 1}`);
     this.save();
   }
 

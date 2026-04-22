@@ -241,6 +241,130 @@ canvas {
   }
 }
 
+#save-btn {
+  position: fixed;
+  bottom: 85px;
+  left: 85px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  z-index: 10;
+}
+
+#save-btn:active {
+  background: rgba(255,208,92,0.35);
+  border-color: rgba(255,208,92,0.6);
+}
+
+#save-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 20;
+}
+
+#save-overlay.visible {
+  display: flex;
+}
+
+.save-panel {
+  background: #1a1a2e;
+  border: 2px solid #ffd166;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  min-width: 280px;
+}
+
+.save-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd166;
+  margin-bottom: 12px;
+}
+
+.save-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+}
+
+.save-slot-info {
+  flex: 1;
+  text-align: left;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.save-slot-info .slot-label {
+  color: #ffd166;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.save-slot-info .slot-detail {
+  color: #999;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.save-slot-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.save-slot-actions button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.slot-save-btn {
+  background: rgba(255,208,92,0.5);
+  color: #1a1a2e;
+  font-weight: 700;
+}
+
+.slot-save-btn:hover {
+  background: rgba(255,208,92,0.7);
+}
+
+.slot-load-btn {
+  background: rgba(255,255,255,0.15);
+  color: #ccc;
+}
+
+.slot-load-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.slot-load-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 #dpad {
   position: fixed;
   bottom: 20px;

@@ -538,6 +538,7 @@ canvas {
   display: none;
   align-items: center;
   justify-content: center;
+  z-index: 50;
 }
 
 .victory-overlay.visible {

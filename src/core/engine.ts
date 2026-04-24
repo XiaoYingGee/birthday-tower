@@ -101,6 +101,10 @@ export class GameEngine implements GameContext {
     this.input = new InputManager((action) => this.handleAction(action));
     this.joystick = new Joystick(config.joystickBase, config.joystickKnob, (action) => this.handleAction(action));
     this.victory = new VictoryEffect(config.shell, config.playerName, config.playerAge, () => this.newGame());
+    this.victory.setCallbacks(
+      () => this.audio.playBGM('birthday'),
+      () => this.audio.playBGM('tower'),
+    );
     this.battleConfirm = config.battleConfirm;
     this.deathOverlay = config.deathOverlay;
     this.restartBtn = config.restartBtn;

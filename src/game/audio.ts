@@ -1,5 +1,5 @@
 const SFX_NAMES = ['floor', 'attack', 'item', 'gem', 'door', 'drink', 'recovery', 'save', 'confirm', 'chapter'] as const;
-const BGM_NAMES = ['tower', 'towerBoss'] as const;
+const BGM_NAMES = ['tower', 'towerBoss', 'birthday'] as const;
 
 export type SFXName = typeof SFX_NAMES[number];
 export type BGMName = typeof BGM_NAMES[number];

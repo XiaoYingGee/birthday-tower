@@ -18,6 +18,8 @@ export class VictoryEffect {
   private readonly birthdaySection: HTMLDivElement;
   private readonly contentEl: HTMLDivElement;
   private readonly onReplay: () => void;
+  private onShow?: () => void;
+  private onHide?: () => void;
   private readonly particles: Particle[] = [];
   private rafId = 0;
   private lastFrame = 0;
@@ -104,7 +106,13 @@ export class VictoryEffect {
     window.addEventListener('resize', this.resize);
   }
 
+  setCallbacks(onShow: () => void, onHide: () => void): void {
+    this.onShow = onShow;
+    this.onHide = onHide;
+  }
+
   show(): void {
+    this.onShow?.();
     this.startedAt = performance.now();
     this.lastFrame = this.startedAt;
     this.lastBurst = 0;
@@ -126,6 +134,7 @@ export class VictoryEffect {
   }
 
   hide(): void {
+    this.onHide?.();
     this.active = false;
     this.overlay.classList.remove('visible');
     if (this.rafId) {

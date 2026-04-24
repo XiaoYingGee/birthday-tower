@@ -4,9 +4,11 @@ const BGM_NAMES = ['tower', 'towerBoss'] as const;
 export type SFXName = typeof SFX_NAMES[number];
 export type BGMName = typeof BGM_NAMES[number];
 
-const STORAGE_KEY = 'birthday-tower-muted';
-const SFX_VOLUME = 0.5;
-const BGM_VOLUME = 0.15;
+const MUTED_KEY = 'birthday-tower-muted';
+const BGM_VOL_KEY = 'birthday-tower-bgm-volume';
+const SFX_VOL_KEY = 'birthday-tower-sfx-volume';
+const DEFAULT_SFX_VOLUME = 0.5;
+const DEFAULT_BGM_VOLUME = 0.15;
 const POOL_SIZE = 3;
 
 export class AudioManager {
@@ -18,9 +20,13 @@ export class AudioManager {
   private muted: boolean;
   private userInteracted = false;
   private pendingBGM?: BGMName;
+  private bgmVol: number;
+  private sfxVol: number;
 
   constructor() {
-    this.muted = localStorage.getItem(STORAGE_KEY) === 'true';
+    this.muted = localStorage.getItem(MUTED_KEY) === 'true';
+    this.bgmVol = parseFloat(localStorage.getItem(BGM_VOL_KEY) ?? '') || DEFAULT_BGM_VOLUME;
+    this.sfxVol = parseFloat(localStorage.getItem(SFX_VOL_KEY) ?? '') || DEFAULT_SFX_VOLUME;
     this.preloadSFX();
   }
 
@@ -29,7 +35,7 @@ export class AudioManager {
       const pool: HTMLAudioElement[] = [];
       for (let i = 0; i < POOL_SIZE; i++) {
         const audio = new Audio(`/audio/sfx/${name}.mp3`);
-        audio.volume = this.muted ? 0 : SFX_VOLUME;
+        audio.volume = this.muted ? 0 : this.sfxVol;
         audio.preload = 'auto';
         pool.push(audio);
       }
@@ -46,7 +52,7 @@ export class AudioManager {
     const audio = pool[idx];
     this.sfxIndex.set(name, (idx + 1) % POOL_SIZE);
     audio.currentTime = 0;
-    audio.volume = SFX_VOLUME;
+    audio.volume = this.sfxVol;
     audio.play().catch(() => {});
   }
 
@@ -70,7 +76,7 @@ export class AudioManager {
       this.bgmElements.set(name, audio);
     }
 
-    audio.volume = this.muted ? 0 : BGM_VOLUME;
+    audio.volume = this.muted ? 0 : this.bgmVol;
     audio.currentTime = 0;
     audio.play().catch(() => {});
     this.currentBGM = audio;
@@ -88,20 +94,41 @@ export class AudioManager {
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    localStorage.setItem(STORAGE_KEY, String(muted));
+    localStorage.setItem(MUTED_KEY, String(muted));
 
     for (const pool of this.sfxPools.values()) {
       for (const audio of pool) {
-        audio.volume = muted ? 0 : SFX_VOLUME;
+        audio.volume = muted ? 0 : this.sfxVol;
       }
     }
 
     if (this.currentBGM) {
-      this.currentBGM.volume = muted ? 0 : BGM_VOLUME;
+      this.currentBGM.volume = muted ? 0 : this.bgmVol;
     }
   }
 
   get isMuted(): boolean {
     return this.muted;
   }
+
+  setBGMVolume(v: number): void {
+    this.bgmVol = v;
+    localStorage.setItem(BGM_VOL_KEY, String(v));
+    if (this.currentBGM && !this.muted) {
+      this.currentBGM.volume = v;
+    }
+  }
+
+  setSFXVolume(v: number): void {
+    this.sfxVol = v;
+    localStorage.setItem(SFX_VOL_KEY, String(v));
+    for (const pool of this.sfxPools.values()) {
+      for (const audio of pool) {
+        audio.volume = this.muted ? 0 : v;
+      }
+    }
+  }
+
+  getBGMVolume(): number { return this.bgmVol; }
+  getSFXVolume(): number { return this.sfxVol; }
 }

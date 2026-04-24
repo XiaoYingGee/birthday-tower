@@ -341,13 +341,80 @@ export class GameEngine implements GameContext {
     });
   }
 
+  private volumePanel?: HTMLElement;
+
   private setupMuteBtn(): void {
     this.muteBtn.textContent = this.audio.isMuted ? '🔇' : '🔊';
-    this.muteBtn.addEventListener('click', () => {
+    this.muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this.volumePanel) {
+        this.closeVolumePanel();
+      } else {
+        this.openVolumePanel();
+      }
+    });
+  }
+
+  private openVolumePanel(): void {
+    const panel = document.createElement('div');
+    panel.id = 'volume-panel';
+
+    const bgmVal = Math.round(this.audio.getBGMVolume() * 100);
+    const sfxVal = Math.round(this.audio.getSFXVolume() * 100);
+    const muted = this.audio.isMuted;
+
+    panel.innerHTML = `
+      <div class="vol-row"><span>🎵 BGM</span><input type="range" id="vol-bgm" min="0" max="100" value="${bgmVal}"></div>
+      <div class="vol-row"><span>🔔 SFX</span><input type="range" id="vol-sfx" min="0" max="100" value="${sfxVal}"></div>
+      <button id="vol-mute-toggle">${muted ? '🔇 已静音' : '🔊 取消静音'}</button>
+    `;
+
+    document.body.appendChild(panel);
+    this.volumePanel = panel;
+
+    const bgmSlider = panel.querySelector<HTMLInputElement>('#vol-bgm')!;
+    const sfxSlider = panel.querySelector<HTMLInputElement>('#vol-sfx')!;
+    const muteToggle = panel.querySelector<HTMLButtonElement>('#vol-mute-toggle')!;
+
+    bgmSlider.addEventListener('input', () => {
+      this.audio.setBGMVolume(parseInt(bgmSlider.value) / 100);
+      if (this.audio.isMuted) {
+        this.audio.setMuted(false);
+        this.muteBtn.textContent = '🔊';
+        muteToggle.textContent = '🔊 取消静音';
+      }
+    });
+
+    sfxSlider.addEventListener('input', () => {
+      this.audio.setSFXVolume(parseInt(sfxSlider.value) / 100);
+      if (this.audio.isMuted) {
+        this.audio.setMuted(false);
+        this.muteBtn.textContent = '🔊';
+        muteToggle.textContent = '🔊 取消静音';
+      }
+    });
+
+    muteToggle.addEventListener('click', () => {
       const next = !this.audio.isMuted;
       this.audio.setMuted(next);
       this.muteBtn.textContent = next ? '🔇' : '🔊';
+      muteToggle.textContent = next ? '🔇 已静音' : '🔊 取消静音';
     });
+
+    const closeOnOutside = (ev: MouseEvent) => {
+      if (!panel.contains(ev.target as Node) && ev.target !== this.muteBtn) {
+        this.closeVolumePanel();
+        document.removeEventListener('click', closeOnOutside);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+  }
+
+  private closeVolumePanel(): void {
+    if (this.volumePanel) {
+      this.volumePanel.remove();
+      this.volumePanel = undefined;
+    }
   }
 
   // --- Game State ---

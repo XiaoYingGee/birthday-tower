@@ -218,6 +218,7 @@ export class GameEngine implements GameContext {
 
     this.restartConfirm.querySelector('.restart-yes')!.addEventListener('click', () => {
       this.restartConfirm.classList.remove('visible');
+      this.audio.playSFX('confirm');
       this.newGame();
     });
     this.restartConfirm.querySelector('.restart-no')!.addEventListener('click', () => {
@@ -317,6 +318,7 @@ export class GameEngine implements GameContext {
           if (result) {
             this.floorIndex = result.floorIndex;
             saveGame(this.floorIndex, this.player, this.floors);
+            this.audio.playSFX('save');
             this.showMessage(`已读取存档 ${i}`);
           }
           overlay.classList.remove('visible');
@@ -516,6 +518,7 @@ export class GameEngine implements GameContext {
             const body = this.deathOverlay.querySelector('.death-body')!;
             body.innerHTML = `<div>被 ${name} 击败</div>`;
             this.deathOverlay.classList.add('visible');
+            this.audio.playSFX('confirm');
           },
           onCellArrival: () => {
             resolveCellArrival(this, this.currentFloor.grid[this.player.y][this.player.x]);
@@ -570,6 +573,7 @@ export class GameEngine implements GameContext {
     if (cell.door) {
       if (!consumeDoorKey(this.player, cell.door)) {
         this.showMessage('钥匙不够');
+        this.audio.playSFX('confirm');
         return;
       }
       cell.door = undefined;

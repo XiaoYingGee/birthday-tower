@@ -1,15 +1,25 @@
-import type { Cell, FloorDefinition } from '../data/floor';
+import type { Cell, FloorDefinition, ItemType } from '../data/floor';
 import type { GameContext } from '../core/game-context';
 import { applyItem, checkLevelUp } from '../entities/player';
+import type { SFXName } from '../game/audio';
+
+const ITEM_SFX: Partial<Record<ItemType, SFXName>> = {
+  yellowKey: 'item', blueKey: 'item', redKey: 'item',
+  redPotion: 'drink', bluePotion: 'drink',
+  redGem: 'gem', blueGem: 'gem',
+};
 
 export function resolveCellArrival(ctx: GameContext, cell: Cell): void {
   if (cell.item) {
     const item = cell.item;
     cell.item = undefined;
     ctx.showMessage(applyItem(ctx.player, item));
+    const sfx = ITEM_SFX[item];
+    if (sfx) ctx.audio.playSFX(sfx);
     const lvMsgs = checkLevelUp(ctx.player);
     for (const msg of lvMsgs) {
       ctx.showMessage(msg);
+      ctx.audio.playSFX('recovery');
     }
     ctx.save();
   }
@@ -27,6 +37,7 @@ export function handleStair(ctx: GameContext, cell: Cell): void {
     const fromX = ctx.player.x;
     const fromY = ctx.player.y;
     ctx.floorIndex += 1;
+    ctx.audio.playBGM(ctx.floorIndex >= 5 ? 'towerBoss' : 'tower');
     const floor = ctx.currentFloor;
     if (floor.starts.length > 0) {
       const nearest = findNearestPoint(floor.starts, fromX, fromY);
@@ -49,6 +60,7 @@ export function handleStair(ctx: GameContext, cell: Cell): void {
     const fromX = ctx.player.x;
     const fromY = ctx.player.y;
     ctx.floorIndex -= 1;
+    ctx.audio.playBGM(ctx.floorIndex >= 5 ? 'towerBoss' : 'tower');
     const floor = ctx.currentFloor;
     if (floor.comeDowns.length > 0) {
       const nearest = findNearestPoint(floor.comeDowns, fromX, fromY);

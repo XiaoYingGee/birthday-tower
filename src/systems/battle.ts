@@ -136,6 +136,7 @@ export function finishBattle(ctx: GameContext, battle: BattleAnimation, callback
   for (const msg of lvMsgs) {
     ctx.addFloatingText('LEVEL UP!', ctx.player.visualX + TILE_SIZE / 2, ctx.player.visualY - 10, '#ffd700', now, 800);
     ctx.showMessage(msg);
+    ctx.audio.playSFX('recovery');
   }
 
   ctx.save();

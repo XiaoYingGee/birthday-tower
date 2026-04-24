@@ -267,6 +267,32 @@ canvas {
   border-color: rgba(255,208,92,0.6);
 }
 
+#mute-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 15px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  z-index: 10;
+}
+
+#mute-btn:active {
+  background: rgba(255,208,92,0.35);
+  border-color: rgba(255,208,92,0.6);
+}
+
 #save-overlay {
   position: absolute;
   inset: 0;

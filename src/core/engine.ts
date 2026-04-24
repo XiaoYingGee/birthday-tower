@@ -15,6 +15,7 @@ import { startMove, updateMovement, type MoveAnimation } from '../systems/moveme
 import { resolveCellArrival } from '../systems/floor-nav';
 import { createShop, createPrincess, createKeyShop, type ShopHandle, type PrincessHandle, type KeyShopHandle } from '../entities/npc';
 import { tryStartBattle, executeBattle, updateBattleAnimation, finishBattle, getBattleRenderState, type BattleAnimation } from '../systems/battle';
+import { AudioManager } from '../game/audio';
 
 type Direction = InputAction;
 
@@ -49,6 +50,7 @@ export interface GameConfig {
   victoryChest: HTMLElement;
   saveBtn: HTMLElement;
   saveOverlay: HTMLElement;
+  muteBtn: HTMLElement;
   playerName: string;
   playerAge: string;
   loader: SpriteLoader;
@@ -70,6 +72,8 @@ export class GameEngine implements GameContext {
   private readonly fairyConfirm: HTMLElement;
   private readonly victoryChest: HTMLElement;
   readonly playerName: string;
+  readonly audio: AudioManager;
+  private readonly muteBtn: HTMLElement;
   private readonly destroyModalKb: () => void;
 
   floors: FloorDefinition[] = [];
@@ -105,6 +109,9 @@ export class GameEngine implements GameContext {
     this.fairyConfirm = config.fairyConfirm;
     this.victoryChest = config.victoryChest;
     this.playerName = config.playerName;
+    this.audio = new AudioManager();
+    this.muteBtn = config.muteBtn;
+    this.setupMuteBtn();
 
     this.shop = createShop(config.shopOverlay, this);
     this.princess = createPrincess(config.princessOverlay, this);
@@ -151,6 +158,7 @@ export class GameEngine implements GameContext {
       const pb = this.pendingBattle;
       this.pendingBattle = undefined;
       this.battleConfirm.classList.remove('visible');
+      this.audio.playSFX('attack');
       this.battleAnimation = executeBattle(this, pb.cell, pb.x, pb.y, pb.direction);
     });
     this.battleConfirm.querySelector('.confirm-no')!.addEventListener('click', () => {
@@ -226,6 +234,7 @@ export class GameEngine implements GameContext {
       const item = cell.item!;
       cell.item = undefined;
       this.showMessage(applyItem(this.player, item));
+      this.audio.playSFX('gem');
       this.save();
     });
     this.treasureConfirm.querySelector('.treasure-no')!.addEventListener('click', () => {
@@ -248,6 +257,7 @@ export class GameEngine implements GameContext {
       this.player.def += defGain;
       cell.fairy = undefined;
       this.showMessage(`仙子的祝福：HP+${hpGain} 攻+${atkGain} 防+${defGain}`);
+      this.audio.playSFX('recovery');
       this.save();
     });
     this.fairyConfirm.querySelector('.fairy-no')!.addEventListener('click', () => {
@@ -293,6 +303,7 @@ export class GameEngine implements GameContext {
         saveBtn.textContent = '保存';
         saveBtn.addEventListener('click', () => {
           saveToSlot(i, this.floorIndex, this.player, this.floors);
+          this.audio.playSFX('save');
           this.showMessage(`已保存到存档 ${i}`);
           renderSlots();
         });
@@ -327,6 +338,15 @@ export class GameEngine implements GameContext {
     this.victoryChest.addEventListener('click', () => {
       this.victoryChest.classList.remove('visible');
       this.victory.show();
+    });
+  }
+
+  private setupMuteBtn(): void {
+    this.muteBtn.textContent = this.audio.isMuted ? '🔇' : '🔊';
+    this.muteBtn.addEventListener('click', () => {
+      const next = !this.audio.isMuted;
+      this.audio.setMuted(next);
+      this.muteBtn.textContent = next ? '🔇' : '🔊';
     });
   }
 
@@ -369,11 +389,17 @@ export class GameEngine implements GameContext {
       this.message = '';
     } else {
     }
+    this.syncBGM();
   }
 
   private newGame(): void {
     clearSave();
     this.reset();
+    this.syncBGM();
+  }
+
+  private syncBGM(): void {
+    this.audio.playBGM(this.floorIndex >= 5 ? 'towerBoss' : 'tower');
   }
 
   save(): void {
@@ -414,6 +440,7 @@ export class GameEngine implements GameContext {
         finishBattle(this, battle, {
           onVictory: () => {
             this.victoryShown = true;
+            this.audio.playSFX('chapter');
             window.setTimeout(() => {
               this.victoryChest.classList.add('visible');
             }, 500);
@@ -451,6 +478,7 @@ export class GameEngine implements GameContext {
   // --- Input ---
 
   private handleAction(action: InputAction): void {
+    this.audio.notifyUserInteraction();
     if (this.victoryShown || this.shop.isOpen() || this.princess.isOpen() || this.keyShop.isOpen() || this.pendingBattle || this.pendingTreasureCell || this.pendingFairyCell || this.restartConfirm.classList.contains('visible')) {
       return;
     }
@@ -479,6 +507,7 @@ export class GameEngine implements GameContext {
       }
       cell.door = undefined;
       this.showMessage('开门');
+      this.audio.playSFX('door');
       this.save();
       return;
     }
@@ -488,6 +517,7 @@ export class GameEngine implements GameContext {
       if (result.type === 'pending') {
         this.pendingBattle = { cell: result.cell, x: result.x, y: result.y, direction };
       } else {
+        this.audio.playSFX('attack');
         this.battleAnimation = executeBattle(this, cell, nextX, nextY, direction);
       }
       return;
@@ -508,6 +538,7 @@ export class GameEngine implements GameContext {
     if (cell.keyShop) { this.keyShop.open(); return; }
 
     this.moveAnimation = startMove(this.player, nextX, nextY, performance.now());
+    this.audio.playSFX('floor');
   }
 
   private tryConsumePendingDirection(): void {

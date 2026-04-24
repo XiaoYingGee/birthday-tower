@@ -40,6 +40,7 @@ const fairyConfirm = requireEl<HTMLElement>('fairy-confirm');
 const victoryChest = requireEl<HTMLElement>('victory-chest');
 const saveBtn = requireEl<HTMLElement>('save-btn');
 const saveOverlay = requireEl<HTMLElement>('save-overlay');
+const muteBtn = requireEl<HTMLElement>('mute-btn');
 
 const playerName = import.meta.env.VITE_PLAYER_NAME || '吴沐峰';
 const playerAge = import.meta.env.VITE_PLAYER_AGE || '10';
@@ -75,6 +76,7 @@ async function bootstrap(): Promise<void> {
     victoryChest,
     saveBtn,
     saveOverlay,
+    muteBtn,
     playerName,
     playerAge,
     loader,

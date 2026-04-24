@@ -38,6 +38,7 @@ export function createShop(overlay: HTMLElement, ctx: GameContext): ShopHandle {
     else if (action === 'atk') { ctx.player.atk += shopItem.gain; }
     else if (action === 'def') { ctx.player.def += shopItem.gain; }
     ctx.showMessage(`${action === 'hp' ? 'HP' : action === 'atk' ? '攻' : '防'}+${shopItem.gain}`);
+    ctx.audio.playSFX('confirm');
 
     updateButtons();
     ctx.save();
@@ -88,6 +89,7 @@ export function createPrincess(overlay: HTMLElement, ctx: GameContext): Princess
     if (action === 'hp') { ctx.player.hp += 200; ctx.showMessage('HP +200'); }
     else if (action === 'atk') { ctx.player.atk += 40; ctx.showMessage('攻击 +40'); }
     else if (action === 'def') { ctx.player.def += 20; ctx.showMessage('防御 +20'); }
+    ctx.audio.playSFX('confirm');
     if (activeCell) {
       activeCell.princess = undefined;
       activeCell = undefined;
@@ -151,6 +153,7 @@ export function createKeyShop(overlay: HTMLElement, ctx: GameContext): KeyShopHa
 
     const names: Record<string, string> = { yellow: '黄', blue: '蓝', red: '红' };
     ctx.showMessage(`购买${names[color]}钥匙！剩余${KEY_LIMIT - sold}次`);
+    ctx.audio.playSFX('confirm');
     updateButtons();
     ctx.save();
   });

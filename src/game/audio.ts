@@ -6,7 +6,7 @@ export type BGMName = typeof BGM_NAMES[number];
 
 const STORAGE_KEY = 'birthday-tower-muted';
 const SFX_VOLUME = 0.5;
-const BGM_VOLUME = 0.3;
+const BGM_VOLUME = 0.15;
 const POOL_SIZE = 3;
 
 export class AudioManager {

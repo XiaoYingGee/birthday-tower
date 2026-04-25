@@ -11,33 +11,20 @@
 ## 核心架构
 
 ```
-src/
-├── main.ts              ← 入口，初始化引擎
-├── core/
-│   ├── engine.ts        ← 游戏主循环、状态机
-│   └── game-context.ts  ← 游戏上下文接口
-├── game/
-│   ├── config.ts        ← 所有数值配置（唯一调参文件）
-│   ├── audio.ts         ← 音效与 BGM
-│   └── save.ts          ← localStorage 存档
-├── data/
-│   ├── floors.ts        ← 6 层地图数据
-│   ├── monsters.ts      ← 怪物定义
-│   └── quotes.ts        ← 随机台词
-├── entities/
-│   ├── player.ts        ← 玩家状态、升级、道具
-│   ├── monster.ts       ← 战斗公式
-│   └── npc.ts           ← NPC 交互（商人/公主/仙女）
-├── render/
-│   ├── renderer.ts      ← Canvas 渲染、右侧面板
-│   ├── sprite-atlas.ts  ← 精灵图加载与绘制
-│   └── victory.ts       ← 胜利烟花特效
-├── systems/
-│   ├── input.ts         ← 键盘输入
-│   ├── joystick.ts      ← 触屏方向键 D-pad
-│   └── tap-inspect.ts   ← 点击查看怪物/门信息
-└── debug/
-    └── debug.ts         ← 开发环境 debug 面板（仅 DEV）
+src/game/
+├── config.ts       ← 所有数值配置（唯一调参文件）
+├── engine.ts       ← 游戏主循环、状态机、战斗逻辑
+├── floor.ts        ← Cell/Grid 类型定义、地图解析器
+├── floors.ts       ← 6 层地图数据（从 docs/level/*.txt 转换）
+├── player.ts       ← 玩家状态、升级、道具效果、开门
+├── monster.ts      ← 怪物定义、战斗公式
+├── renderer.ts     ← Canvas 渲染、右侧面板、Banner 定位
+├── sprite-atlas.ts ← 精灵图加载与绘制
+├── input.ts        ← 键盘输入
+├── joystick.ts     ← 触屏虚拟摇杆
+├── victory.ts      ← 胜利烟花特效
+├── save.ts         ← localStorage 存档
+├── debug.ts        ← 开发环境 debug 面板（仅 DEV）
 ```
 
 ## 地图设计流程

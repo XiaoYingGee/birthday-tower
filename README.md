@@ -25,8 +25,8 @@ npm run build
 项目通过 `import.meta.env` 读取以下变量：
 
 ```env
-VITE_PLAYER_NAME=吴沐峰
-VITE_PLAYER_AGE=10
+VITE_PLAYER_NAME=小朋友
+VITE_PLAYER_AGE=6
 ```
 
 - `VITE_PLAYER_NAME`：生日祝福中的名字
@@ -34,14 +34,14 @@ VITE_PLAYER_AGE=10
 
 ## 操作方式
 
-- 键盘：`WASD` / 方向键移动（朝怪物移动即开战）
-- 触摸：屏幕上的方向手柄移动（点击怪物方向即开战）
+- 键盘：`WASD` / 方向键移动，`Space` 攻击前方，`E` 使用物品
+- 触摸：左下角方向键移动，右下角 `攻击` / `物品` 按钮操作
 
 ## iPad 适配
 
 - 锁定 viewport 缩放，防止双击缩放
 - 禁用长按菜单、文本选中、手势缩放和双击手势
-- 右下角提供方向键 D-pad，方便触摸操作
+- 底部提供大尺寸虚拟按键，避免误触
 
 ## 素材致谢
 

@@ -86,9 +86,9 @@ export function createPrincess(overlay: HTMLElement, ctx: GameContext): Princess
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-princess]');
     if (!btn) return;
     const action = btn.dataset.princess! as 'hp' | 'atk' | 'def';
-    if (action === 'hp') { ctx.player.hp += 200; ctx.showMessage('HP +200'); }
+    if (action === 'hp') { ctx.player.hp += 1000; ctx.showMessage('HP +1000'); }
     else if (action === 'atk') { ctx.player.atk += 30; ctx.showMessage('攻击 +30'); }
-    else if (action === 'def') { ctx.player.def += 20; ctx.showMessage('防御 +20'); }
+    else if (action === 'def') { ctx.player.def += 18; ctx.showMessage('防御 +18'); }
     ctx.audio.playSFX('confirm');
     if (activeCell) {
       activeCell.princess = undefined;

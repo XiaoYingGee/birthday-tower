@@ -24,7 +24,7 @@ export const CONFIG = {
   levelUp: {
     expRequired: 100,
     hpGain: 50,
-    atkGain: 2,
+    atkGain: 3,
     defGain: 2,
   },
   items: {

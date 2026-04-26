@@ -9,11 +9,15 @@ const BGM_VOL_KEY = 'birthday-tower-bgm-volume';
 const SFX_VOL_KEY = 'birthday-tower-sfx-volume';
 const DEFAULT_SFX_VOLUME = 0.5;
 const DEFAULT_BGM_VOLUME = 0.15;
-const POOL_SIZE = 3;
 
+/**
+ * Web Audio 实现：SFX 用 AudioBufferSourceNode，零延迟、不阻塞主线程。
+ * BGM 仍用 HTMLAudioElement（流式播放更省内存，循环更稳）。
+ */
 export class AudioManager {
-  private sfxPools = new Map<SFXName, HTMLAudioElement[]>();
-  private sfxIndex = new Map<SFXName, number>();
+  private ctx?: AudioContext;
+  private sfxGain?: GainNode;
+  private sfxBuffers = new Map<SFXName, AudioBuffer>();
   private bgmElements = new Map<BGMName, HTMLAudioElement>();
   private currentBGM?: HTMLAudioElement;
   private currentBGMName?: BGMName;
@@ -27,33 +31,53 @@ export class AudioManager {
     this.muted = localStorage.getItem(MUTED_KEY) === 'true';
     this.bgmVol = parseFloat(localStorage.getItem(BGM_VOL_KEY) ?? '') || DEFAULT_BGM_VOLUME;
     this.sfxVol = parseFloat(localStorage.getItem(SFX_VOL_KEY) ?? '') || DEFAULT_SFX_VOLUME;
-    this.preloadSFX();
+    // 不在构造函数里建 AudioContext —— 必须等用户交互后再建
   }
 
-  private preloadSFX(): void {
-    for (const name of SFX_NAMES) {
-      const pool: HTMLAudioElement[] = [];
-      for (let i = 0; i < POOL_SIZE; i++) {
-        const audio = new Audio(`/audio/sfx/${name}.mp3`);
-        audio.volume = this.muted ? 0 : this.sfxVol;
-        audio.preload = 'auto';
-        pool.push(audio);
-      }
-      this.sfxPools.set(name, pool);
-      this.sfxIndex.set(name, 0);
+  private async ensureContext(): Promise<AudioContext | undefined> {
+    if (this.ctx) return this.ctx;
+    if (!this.userInteracted) return undefined;
+    try {
+      const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.ctx = new Ctor();
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.gain.value = this.muted ? 0 : this.sfxVol;
+      this.sfxGain.connect(this.ctx.destination);
+      // 异步预加载所有 SFX，不阻塞
+      void this.preloadAllSFX();
+    } catch {
+      // 不支持 Web Audio，降级（极罕见）
     }
+    return this.ctx;
+  }
+
+  private async preloadAllSFX(): Promise<void> {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    await Promise.all(
+      SFX_NAMES.map(async (name) => {
+        try {
+          const res = await fetch(`/audio/sfx/${name}.mp3`);
+          const buf = await res.arrayBuffer();
+          const audioBuf = await ctx.decodeAudioData(buf);
+          this.sfxBuffers.set(name, audioBuf);
+        } catch {
+          // 忽略单个失败
+        }
+      })
+    );
   }
 
   playSFX(name: SFXName): void {
     if (this.muted) return;
-    const pool = this.sfxPools.get(name);
-    if (!pool) return;
-    const idx = this.sfxIndex.get(name)!;
-    const audio = pool[idx];
-    this.sfxIndex.set(name, (idx + 1) % POOL_SIZE);
-    audio.currentTime = 0;
-    audio.volume = this.sfxVol;
-    audio.play().catch(() => {});
+    if (!this.ctx || !this.sfxGain) return; // 还没初始化（用户还没交互），静默放弃
+    const buf = this.sfxBuffers.get(name);
+    if (!buf) return; // 还没 decode 完，静默放弃（首次几百毫秒内）
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(this.sfxGain);
+    src.start(0);
+    // 播完自动 GC，无需手动管理
   }
 
   playBGM(name: BGMName): void {
@@ -87,6 +111,7 @@ export class AudioManager {
   notifyUserInteraction(): void {
     if (this.userInteracted) return;
     this.userInteracted = true;
+    void this.ensureContext();
     if (this.pendingBGM) {
       this.startBGM(this.pendingBGM);
     }
@@ -95,38 +120,22 @@ export class AudioManager {
   setMuted(muted: boolean): void {
     this.muted = muted;
     localStorage.setItem(MUTED_KEY, String(muted));
-
-    for (const pool of this.sfxPools.values()) {
-      for (const audio of pool) {
-        audio.volume = muted ? 0 : this.sfxVol;
-      }
-    }
-
-    if (this.currentBGM) {
-      this.currentBGM.volume = muted ? 0 : this.bgmVol;
-    }
+    if (this.sfxGain) this.sfxGain.gain.value = muted ? 0 : this.sfxVol;
+    if (this.currentBGM) this.currentBGM.volume = muted ? 0 : this.bgmVol;
   }
 
-  get isMuted(): boolean {
-    return this.muted;
-  }
+  get isMuted(): boolean { return this.muted; }
 
   setBGMVolume(v: number): void {
     this.bgmVol = v;
     localStorage.setItem(BGM_VOL_KEY, String(v));
-    if (this.currentBGM && !this.muted) {
-      this.currentBGM.volume = v;
-    }
+    if (this.currentBGM && !this.muted) this.currentBGM.volume = v;
   }
 
   setSFXVolume(v: number): void {
     this.sfxVol = v;
     localStorage.setItem(SFX_VOL_KEY, String(v));
-    for (const pool of this.sfxPools.values()) {
-      for (const audio of pool) {
-        audio.volume = this.muted ? 0 : v;
-      }
-    }
+    if (this.sfxGain && !this.muted) this.sfxGain.gain.value = v;
   }
 
   getBGMVolume(): number { return this.bgmVol; }

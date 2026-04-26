@@ -140,4 +140,55 @@ export class AudioManager {
 
   getBGMVolume(): number { return this.bgmVol; }
   getSFXVolume(): number { return this.sfxVol; }
+
+  /**
+   * 暂停所有音频（页面隐藏时调用），保留状态以便恢复。
+   */
+  pauseAll(): void {
+    if (this.currentBGM) {
+      try { this.currentBGM.pause(); } catch { /* ignore */ }
+    }
+    if (this.ctx && this.ctx.state === 'running') {
+      void this.ctx.suspend().catch(() => {});
+    }
+  }
+
+  /**
+   * 恢复音频（页面重新可见时调用）。
+   */
+  resumeAll(): void {
+    if (this.muted) return;
+    if (this.ctx && this.ctx.state === 'suspended') {
+      void this.ctx.resume().catch(() => {});
+    }
+    if (this.currentBGM && this.currentBGM.paused) {
+      this.currentBGM.play().catch(() => {});
+    }
+  }
+
+  /**
+   * 彻底销毁音频，关闭 AudioContext，停掉所有 BGM。
+   * 页面卸载/PWA 关闭时必须调用。
+   */
+  destroy(): void {
+    // 停掉所有 BGM 元素，清掉 src 让浏览器释放
+    for (const audio of this.bgmElements.values()) {
+      try {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+      } catch { /* ignore */ }
+    }
+    this.bgmElements.clear();
+    this.currentBGM = undefined;
+    this.currentBGMName = undefined;
+
+    // 关闭 AudioContext 释放底层音频资源
+    if (this.ctx) {
+      try { void this.ctx.close(); } catch { /* ignore */ }
+      this.ctx = undefined;
+      this.sfxGain = undefined;
+    }
+    this.sfxBuffers.clear();
+  }
 }

@@ -145,6 +145,7 @@ export class GameEngine implements GameContext {
     this.joystick.destroy();
     this.victory.destroy();
     this.destroyModalKb();
+    this.audio.destroy();
     if (this.messageTimer) {
       window.clearTimeout(this.messageTimer);
     }

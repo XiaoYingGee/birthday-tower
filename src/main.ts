@@ -84,6 +84,26 @@ async function bootstrap(): Promise<void> {
 
   window.addEventListener('beforeunload', () => engine.destroy());
 
+  // PWA / 移动端关进程不一定触发 beforeunload，pagehide 是更可靠的信号
+  window.addEventListener('pagehide', () => engine.destroy());
+
+  // 页面隐藏时暂停音频，恢复时重启。10秒后仍隐藏则彻底销毁释放资源
+  let hideTimer: number | undefined;
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      engine.audio.pauseAll();
+      hideTimer = window.setTimeout(() => {
+        engine.audio.destroy();
+      }, 10000);
+    } else {
+      if (hideTimer) {
+        window.clearTimeout(hideTimer);
+        hideTimer = undefined;
+      }
+      engine.audio.resumeAll();
+    }
+  });
+
   if (import.meta.env.DEV) {
     createDebugPanel(engine);
   }

@@ -441,6 +441,7 @@ export class GameEngine implements GameContext {
     this.shop.close();
     this.princess.close();
     this.keyShop.close();
+    this.keyShop.reset();
     this.battleConfirm.classList.remove('visible');
     this.deathOverlay.classList.remove('visible');
     this.treasureConfirm.classList.remove('visible');

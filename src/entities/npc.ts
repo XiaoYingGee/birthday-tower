@@ -118,6 +118,7 @@ export interface KeyShopHandle {
   open(): void;
   close(): void;
   isOpen(): boolean;
+  reset(): void;
 }
 
 const KEY_COST = 100;
@@ -181,6 +182,10 @@ export function createKeyShop(overlay: HTMLElement, ctx: GameContext): KeyShopHa
       overlay.classList.remove('visible');
     },
     isOpen() { return open; },
+    reset() {
+      sold = 0;
+      updateButtons();
+    },
   };
 
   return handle;

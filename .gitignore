@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 .env
+
+# sprite backups
+public/sprites/*.bak.*

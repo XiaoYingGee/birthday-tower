@@ -6,7 +6,7 @@
 
 - **技术栈**：Vite 7 + TypeScript + 原生 Canvas 2D，零运行时依赖
 - **部署**：Cloudflare Pages（`wrangler.toml`）
-- **个性化**：环境变量 `VITE_PLAYER_NAME` / `VITE_PLAYER_AGE` 定制生日祝福
+- **个性化**：首次进入游戏输入姓名 + 年龄（localStorage `birthday-tower-player`），存档管理里可重输
 
 ## 核心架构
 

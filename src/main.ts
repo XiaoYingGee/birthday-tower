@@ -3,6 +3,7 @@ import './styles.css';
 import { GameEngine } from './core/engine';
 import { SpriteLoader } from './render/sprite-atlas';
 import { createDebugPanel } from './debug/debug';
+import { ensurePlayerProfile, clearProfile } from './player-profile';
 
 function blockMobileGestures(): void {
   const blocker = (event: Event) => event.preventDefault();
@@ -42,10 +43,13 @@ const saveBtn = requireEl<HTMLElement>('save-btn');
 const saveOverlay = requireEl<HTMLElement>('save-overlay');
 const muteBtn = requireEl<HTMLElement>('mute-btn');
 
-const playerName = import.meta.env.VITE_PLAYER_NAME || '吴沐峰';
-const playerAge = import.meta.env.VITE_PLAYER_AGE || '10';
-
 async function bootstrap(): Promise<void> {
+  // 进入游戏前必须有玩家身份（姓名 + 年龄）。
+  // 如果 localStorage 中已有，直接用；否则弹出入口 modal。
+  const profile = await ensurePlayerProfile();
+  const playerName = profile.name;
+  const playerAge = String(profile.age);
+
   messageEl.textContent = '素材加载中...';
   messageEl.classList.add('visible');
 
@@ -103,6 +107,19 @@ async function bootstrap(): Promise<void> {
       engine.audio.resumeAll();
     }
   });
+
+  // 存档面板里的「修改我的资料」按钮：清 profile 后重新弹 modal，输入后刷新页面重新 bootstrap。
+  // 重要：不动存档 `birthday-tower-save`。
+  const editProfileBtn = document.querySelector<HTMLButtonElement>('#edit-profile-btn');
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener('click', async () => {
+      clearProfile();
+      saveOverlay.classList.remove('visible');
+      await ensurePlayerProfile({ force: true });
+      // 最简单可靠的做法：刷新页面使新姓名年龄生效于所有位置。
+      window.location.reload();
+    });
+  }
 
   if (import.meta.env.DEV) {
     createDebugPanel(engine);

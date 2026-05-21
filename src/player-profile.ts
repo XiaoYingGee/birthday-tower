@@ -73,6 +73,11 @@ export function ensurePlayerProfile(options: { force?: boolean } = {}): Promise<
     const submitBtn = overlay.querySelector<HTMLButtonElement>('#player-input-submit')!;
     const errorEl = overlay.querySelector<HTMLElement>('#player-input-error')!;
 
+    // 区分两种打开模式：
+    //  - initial: 首次进入（没有现有 profile）→ ESC 只清空输入 + 重新聚焦，不能关 modal。
+    //  - edit：修改我的资料（已有 profile + force）→ ESC 关 modal，resolve 原 profile。
+    const mode: 'initial' | 'edit' = existing ? 'edit' : 'initial';
+
     // 预填已有值（用于"修改资料"场景）
     nameInput.value = existing?.name ?? '';
     ageInput.value = existing ? String(existing.age) : '';
@@ -112,6 +117,42 @@ export function ensurePlayerProfile(options: { force?: boolean } = {}): Promise<
       if (e.key === 'Enter' && !submitBtn.disabled) {
         e.preventDefault();
         submit();
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (mode === 'edit' && existing) {
+          // 修改模式：取消 → 保留原 profile，关 modal
+          cleanup();
+          resolve(existing);
+        } else {
+          // 首次进入：不能关 modal否则 bootstrap 卡死，只清空 + 重聚焦
+          nameInput.value = '';
+          ageInput.value = '';
+          errorEl.textContent = '';
+          updateButtonState();
+          nameInput.focus();
+        }
+        return;
+      }
+      if (e.key === 'Tab') {
+        // Focus trap：在姓名 input → 年龄 input → submit 按钮 三者间循环
+        const focusables: HTMLElement[] = [nameInput, ageInput];
+        if (!submitBtn.disabled) focusables.push(submitBtn);
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey) {
+          if (active === first || !active || !focusables.includes(active)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (active === last || !active || !focusables.includes(active)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
 

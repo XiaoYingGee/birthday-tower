@@ -1077,3 +1077,118 @@ canvas {
   font-size: 10px;
   margin-bottom: 2px;
 }
+
+/* ===== 玩家入口 modal ===== */
+#player-input-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 50;
+  outline: none;
+}
+
+#player-input-overlay.visible {
+  display: flex;
+}
+
+.player-input-panel {
+  background: #1a1a2e;
+  border: 2px solid #ffd166;
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+  text-align: center;
+  min-width: 280px;
+  max-width: 360px;
+  width: calc(100% - 48px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+}
+
+.player-input-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd166;
+  margin-bottom: 6px;
+}
+
+.player-input-subtitle {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 18px;
+}
+
+.player-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.player-input-label {
+  width: 48px;
+  flex-shrink: 0;
+  color: #ffd166;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.player-input-row input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef7e9;
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.player-input-row input:focus {
+  border-color: #ffd166;
+  background: rgba(255, 208, 92, 0.08);
+}
+
+.player-input-row input::-webkit-outer-spin-button,
+.player-input-row input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.player-input-row input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.player-input-error {
+  min-height: 18px;
+  color: #ff7a7a;
+  font-size: 12px;
+  margin: 6px 0 10px;
+  text-align: left;
+}
+
+#player-input-submit {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 16px;
+  margin-top: 6px;
+}
+
+#player-input-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.save-edit-profile {
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffd166;
+}
+
+.save-edit-profile:hover {
+  background: rgba(255, 208, 92, 0.25);
+}

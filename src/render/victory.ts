@@ -1,3 +1,5 @@
+import { escapeHtml } from '../utils/escape';
+
 interface Particle {
   x: number;
   y: number;
@@ -48,7 +50,7 @@ export class VictoryEffect {
     this.birthdaySection = document.createElement('div');
     this.birthdaySection.innerHTML = `
       <h1>🎂 生日快乐 🎂</h1>
-      <p>祝 ${playerName} ${playerAge} 岁生日快乐！</p>
+      <p>祝 ${escapeHtml(playerName)} ${escapeHtml(playerAge)} 岁生日快乐！</p>
       <div class="victory-emoji">🎂 🎁 🎈</div>
     `;
 

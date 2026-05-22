@@ -20,17 +20,11 @@ npm run build
 
 构建输出目录为 `dist/`。
 
-## 环境变量
+## 玩家身份
 
-项目通过 `import.meta.env` 读取以下变量：
-
-```env
-VITE_PLAYER_NAME=小朋友
-VITE_PLAYER_AGE=6
-```
-
-- `VITE_PLAYER_NAME`：生日祝福中的名字
-- `VITE_PLAYER_AGE`：生日祝福中的年龄
+首次进入游戏会弹出输入界面，需要填写玩家姓名（1-16 字符）和年龄（1-120 整数），
+保存在浏览器 localStorage（key=`birthday-tower-player`），独立于关卡存档。
+点击「存档管理 → 修改我的资料」可重新输入；不会清除游戏进度。
 
 ## 操作方式
 

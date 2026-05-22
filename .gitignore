@@ -5,3 +5,6 @@ dist
 
 # sprite backups
 public/sprites/*.bak.*
+
+# linger subagent local screenshots
+.linger-screenshots/

@@ -114,7 +114,24 @@
           <div class="save-panel">
             <div class="save-title">存档管理</div>
             <div class="save-slots"></div>
+            <button class="shop-btn save-edit-profile" id="edit-profile-btn">修改我的资料</button>
             <button class="shop-close save-close">关闭</button>
+          </div>
+        </div>
+        <div id="player-input-overlay" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="player-input-title" aria-describedby="player-input-subtitle">
+          <div class="player-input-panel">
+            <div id="player-input-title" class="player-input-title">欢迎来到生日魔塔</div>
+            <div id="player-input-subtitle" class="player-input-subtitle">请告诉我你的名字和年龄</div>
+            <label class="player-input-row">
+              <span class="player-input-label">姓名</span>
+              <input id="player-name-input" type="text" maxlength="16" autocomplete="off" placeholder="例如：小朋友" />
+            </label>
+            <label class="player-input-row">
+              <span class="player-input-label">年龄</span>
+              <input id="player-age-input" type="number" min="1" max="120" step="1" inputmode="numeric" autocomplete="off" placeholder="1 - 120" />
+            </label>
+            <div id="player-input-error" class="player-input-error"></div>
+            <button id="player-input-submit" class="confirm-btn confirm-yes" disabled>开始游戏</button>
           </div>
         </div>
         <div id="keyshop-overlay">

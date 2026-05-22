@@ -1,6 +1,7 @@
 import type { Cell, FloorDefinition, MonsterId } from '../data/floor';
 import type { PlayerState } from '../entities/player';
 import { TILE_SIZE, type AtlasKey, type SpriteLoader } from './sprite-atlas';
+import { escapeHtml } from '../utils/escape';
 
 export interface FloatingTextRenderState {
   text: string;
@@ -115,7 +116,7 @@ export class Renderer {
 
     const p = state.player;
     let html =
-      `<div class="panel-title"><strong>${state.playerName}</strong> <strong>Lv.${p.level}</strong>（${p.exp}/100）</div>` +
+      `<div class="panel-title"><strong>${escapeHtml(state.playerName)}</strong> <strong>Lv.${p.level}</strong>（${p.exp}/100）</div>` +
       '<hr class="panel-divider">' +
       '<div class="stat-group">' +
       `<div class="stat">${spriteIcon('/sprites/icons.png', 3)}<span class="label">HP</span><span class="val">${p.hp}</span></div>` +
